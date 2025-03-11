@@ -14,17 +14,32 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
+    {
+        title: 'Users',
+        href: '/users',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Roles',
+        href: '/roles',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Permissions',
+        href: '/permissions',
+        icon: LayoutGrid,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
+        title: 'Mentions légales',
+        href: '/legal',
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
+        title: 'Politique de confidentialité',
+        href: '/privacy',
         icon: BookOpen,
     },
 ];
