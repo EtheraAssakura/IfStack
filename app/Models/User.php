@@ -38,14 +38,16 @@ class User extends Authenticatable
 
     public function hasRole($role): bool
     {
-        if (in_array('admin', $this->role)) {
-            return true;
-        }
-        return in_array($role, $this->role);
+        return $this->roles()->where('name', $role)->exists();
     }
 
-    public function permissions()
+    public function roles()
     {
-        return $this->belongsToMany(Permission::class, 'user_permission');
+        return $this->belongsToMany(Role::class, 'user_role');
+    }
+
+    public function hasPermission($permission)
+    {
+        return $this->roles()->whereJsonContains('permissions', $permission)->exists();
     }
 }

@@ -9,6 +9,10 @@ interface Props {
 withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
+
+defineOptions({
+    name: 'AppLayout',
+});
 </script>
 
 <template>

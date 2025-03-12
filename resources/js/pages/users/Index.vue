@@ -1,56 +1,139 @@
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="container mx-auto px-4 sm:px-8">
-            <div class="py-8">
-                <div>
-                    <h2 class="text-2xl font-semibold leading-tight">Utilisateurs</h2>
-                </div>
-                <div class="my-2 flex sm:flex-row flex-col">
-                    <div class="block relative">
-                        <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">
-                            <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current text-gray-500">
-                                <path d="M10,20C4.48,20,0,15.52,0,10S4.48,0,10,0s10,4.48,10,10S15.52,20,10,20z M10,2C5.59,2,2,5.59,2,10s3.59,8,8,8s8-3.59,8-8S14.41,2,10,2z M10,14c-2.21,0-4-1.79-4-4s1.79-4,4-4s4,1.79,4,4S12.21,14,10,14z"></path>
-                            </svg>
-                        </span>
-                        <input placeholder="Search" class="appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full bg-white text-sm placeholder-gray-400 text-gray-700 focus:bg-white focus:placeholder-gray-600 focus:text-gray-700 focus:outline-none"/>
+    <AppLayout title="Gestion des utilisateurs">
+        <template #header>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">
+                    Gestion des utilisateurs
+                </h2>
+                <Link
+                    :href="route('utilisateurs.create')"
+                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary/80"
+                >
+                    <PlusIcon class="h-5 w-5" />
+                    Nouvel utilisateur
+                </Link>
+            </div>
+        </template>
+
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <!-- Carte statistique : Total des utilisateurs -->
+                    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200/50">
+                        <div class="flex items-center">
+                            <div class="rounded-lg bg-primary/10 p-3">
+                                <UsersIcon class="h-6 w-6 text-primary" />
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Total utilisateurs</p>
+                                <p class="text-2xl font-semibold text-gray-900">{{ filteredUsers.length }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Carte statistique : Administrateurs -->
+                    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200/50">
+                        <div class="flex items-center">
+                            <div class="rounded-lg bg-blue-50 p-3">
+                                <ShieldCheckIcon class="h-6 w-6 text-blue-500" />
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Administrateurs</p>
+                                <p class="text-2xl font-semibold text-gray-900">
+                                    {{ filteredUsers.filter(u => u.roles.some(r => r.name === 'Administrateur')).length }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Barre de recherche moderne -->
+                    <div class="col-span-1 md:col-span-2">
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <SearchBar
+                                    v-model="search"
+                                    placeholder="Rechercher un utilisateur..."
+                                    @input="debouncedFilter"
+                                />
+                            </div>
+                            <div class="relative">
+                                <select
+                                    v-model="selectedRole"
+                                    class="block w-full appearance-none rounded-xl border-0 bg-gray-50 px-4 py-3 pr-8 text-base ring-1 ring-inset ring-gray-200 transition-all duration-300 hover:ring-gray-300 focus:bg-white focus:ring-2 focus:ring-primary"
+                                    @change="filterUsers"
+                                >
+                                    <option value="">Tous les rôles</option>
+                                    <option v-for="role in roles" :key="role.id" :value="role.id">
+                                        {{ role.name }}
+                                    </option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                                    <ChevronDownIcon class="h-5 w-5 text-gray-400" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto">
-                    <div class="inline-block min-w-full shadow rounded-lg overflow-hidden">
-                        <table class="min-w-full leading-normal">
-                            <thead>
+
+                <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/50">
+                    <div class="p-6">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50/50">
                                 <tr>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Identitée
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Nom
                                     </th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Email
                                     </th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Date de création
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Rôle
                                     </th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Actions
+                                    <th scope="col" class="relative px-6 py-3">
+                                        <span class="sr-only">Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr v-for="user in users" :key="user.id">
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                        <p class="text-gray-900 whitespace-no-wrap">{{ user.name }}</p>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                <tr v-for="user in filteredUsers" :key="user.id" class="group transition-colors hover:bg-gray-50/50">
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 flex-shrink-0">
+                                                <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                                                    <span class="text-sm font-medium leading-none text-primary">
+                                                        {{ user.name.charAt(0).toUpperCase() }}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                        <p class="text-gray-900 whitespace-no-wrap">{{ user.email }}</p>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        <div class="text-sm text-gray-900">{{ user.email }}</div>
                                     </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                        <p class="text-gray-900 whitespace-no-wrap">{{ new Date(user.created_at).toLocaleDateString() }}</p>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        <span
+                                            v-for="role in user.roles"
+                                            :key="role.id"
+                                            :class="{
+                                                'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium': true,
+                                                'bg-primary/10 text-primary': role.name === 'Administrateur',
+                                                'bg-blue-100 text-blue-800': role.name !== 'Administrateur'
+                                            }"
+                                        >
+                                            {{ role.name }}
+                                        </span>
                                     </td>
-                                    <td class="flex flex-col justify-center item-center px-5 py-5  border-gray-200 bg-white text-sm text-right">
-                                        <button @click="openModal(user)" class="text-gray-500 hover:text-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 vertical" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M6 10a2 2 0 110-4 2 2 0 010 4zm4 0a2 2 0 110-4 2 2 0 010 4zm4 0a2 2 0 110-4 2 2 0 010 4z" />
-                                            </svg>
-                                        </button>
+                                    <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                                        <Link
+                                            :href="route('utilisateurs.edit', user.id)"
+                                            class="inline-flex items-center gap-2 text-gray-500 transition-colors hover:text-primary"
+                                        >
+                                            <PencilIcon class="h-4 w-4" />
+                                            Modifier
+                                        </Link>
                                     </td>
                                 </tr>
                             </tbody>
@@ -60,78 +143,55 @@
             </div>
         </div>
     </AppLayout>
-
-    <!-- Modal -->
-    <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                Actions
-                            </h3>
-                            <div class="mt-2">
-                                <button @click="editUser(selectedUser)" class="text-blue-500 hover:text-blue-700">Editer</button>
-                                <button @click="deleteUser(selectedUser)" class="text-red-500 hover:text-red-700 ml-4">Supprimer</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button @click="closeModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                        Fermer
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import SearchBar from '@/Components/SearchBar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { Link } from '@inertiajs/vue3';
+import debounce from 'lodash/debounce';
+import { ChevronDownIcon, PencilIcon, PlusIcon, ShieldCheckIcon, UsersIcon } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
-const { props } = usePage();
-const users = ref(props.users);
-const breadcrumbs = ref([
-    { text: 'Home', href: '/' },
-    { text: 'Users', href: '/users' }
-]);
+const props = defineProps<{
+    users: {
+        id: number;
+        name: string;
+        email: string;
+        roles: {
+            id: number;
+            name: string;
+        }[];
+    }[];
+    roles: {
+        id: number;
+        name: string;
+    }[];
+}>();
 
-const showModal = ref(false);
-const selectedUser = ref(null);
+const search = ref('');
+const selectedRole = ref('');
 
-const openModal = (user) => {
-    selectedUser.value = user;
-    showModal.value = true;
+const filteredUsers = computed(() => {
+    return props.users.filter(user => {
+        const matchesSearch = search.value === '' ||
+            user.name.toLowerCase().includes(search.value.toLowerCase()) ||
+            user.email.toLowerCase().includes(search.value.toLowerCase());
+
+        const matchesRole = selectedRole.value === '' ||
+            user.roles.some(role => role.id === Number(selectedRole.value));
+
+        return matchesSearch && matchesRole;
+    });
+});
+
+const filterUsers = () => {
+    // Cette fonction est appelée lors du changement de rôle
+    // Le filtrage est géré automatiquement par le computed
 };
 
-const closeModal = () => {
-    showModal.value = false;
-    selectedUser.value = null;
-};
-
-const editUser = (user) => {
-    // Logique pour éditer l'utilisateur
-    console.log('Editer', user);
-    closeModal();
-};
-
-const deleteUser = (user) => {
-    // Logique pour supprimer l'utilisateur
-    console.log('Supprimer', user);
-    closeModal();
-};
+const debouncedFilter = debounce(() => {
+    // Cette fonction est appelée lors de la recherche
+    // Le filtrage est géré automatiquement par le computed
+}, 300);
 </script>
-
-<style scoped>
-.vertical {
-    transform: rotate(90deg);
-}
-</style>

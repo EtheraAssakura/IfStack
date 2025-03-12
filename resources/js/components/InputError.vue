@@ -2,6 +2,10 @@
 defineProps<{
     message?: string;
 }>();
+
+defineOptions({
+    name: 'InputError',
+});
 </script>
 
 <template>
