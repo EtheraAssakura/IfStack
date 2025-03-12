@@ -18,11 +18,7 @@ const mainNavItems: NavItem[] = [
         title: 'Users',
         href: '/users',
         icon: LayoutGrid,
-    },
-    {
-        title: 'Roles',
-        href: '/roles',
-        icon: LayoutGrid,
+
     },
     {
         title: 'Permissions',

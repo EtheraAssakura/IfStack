@@ -6,14 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Inertia\Inertia;
 
-
-class UsersController extends Controller 
+class UsersController extends Controller
 {
     public function index()
     {
         $users = User::all();
-        return Inertia::render('');
+        return Inertia::render('users/Index', [
+            'users' => $users,
+        ]);
     }
 }
-
-?>
