@@ -9,19 +9,15 @@ class DeliveryItem extends Model
 {
     protected $fillable = [
         'delivery_id',
-        'location_id',
         'supply_id',
-        'quantity'
+        'quantity',
+        'unit_price',
+        'notes'
     ];
 
     public function delivery(): BelongsTo
     {
         return $this->belongsTo(Delivery::class);
-    }
-
-    public function location(): BelongsTo
-    {
-        return $this->belongsTo(Location::class);
     }
 
     public function supply(): BelongsTo

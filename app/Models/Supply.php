@@ -13,10 +13,8 @@ class Supply extends Model
         'name',
         'reference',
         'packaging',
-        'catalog_url',
-        'alert_threshold',
         'image_url',
-        'category_id'
+        'category_id',
     ];
 
     public function category(): BelongsTo
@@ -27,7 +25,7 @@ class Supply extends Model
     public function suppliers(): BelongsToMany
     {
         return $this->belongsToMany(Supplier::class)
-            ->withPivot(['supplier_reference', 'unit_price'])
+            ->withPivot(['supplier_reference', 'unit_price', 'catalog_url'])
             ->withTimestamps();
     }
 

@@ -8,33 +8,33 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Emplacement extends Model
 {
-  protected $table = 'emplacements';
+  protected $table = 'locations';
 
   protected $fillable = [
-    'nom',
+    'name',
     'description',
     'qr_code',
     'photo_url',
-    'position_plan',
-    'etablissement_id',
+    'plan_position',
+    'site_id',
   ];
 
   protected $casts = [
-    'position_plan' => 'array',
+    'plan_position' => 'array',
   ];
 
   public function etablissement(): BelongsTo
   {
-    return $this->belongsTo(Etablissement::class);
+    return $this->belongsTo(Etablissement::class, 'site_id');
   }
 
   public function stocks(): HasMany
   {
-    return $this->hasMany(Stock::class);
+    return $this->hasMany(Stock::class, 'location_id');
   }
 
   public function detailsLivraison(): HasMany
   {
-    return $this->hasMany(DetailLivraison::class);
+    return $this->hasMany(DetailLivraison::class, 'location_id');
   }
 }

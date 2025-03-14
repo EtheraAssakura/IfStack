@@ -8,22 +8,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Fournisseur extends Model
 {
-  protected $table = 'fournisseurs';
+  protected $table = 'suppliers';
 
   protected $fillable = [
-    'nom',
-    'url_catalogue',
+    'name',
+    'catalog_url',
   ];
 
   public function fournitures(): BelongsToMany
   {
-    return $this->belongsToMany(Fourniture::class, 'fourniture_fournisseur')
-      ->withPivot(['reference_fournisseur', 'prix_unitaire'])
+    return $this->belongsToMany(Fourniture::class, 'supply_supplier', 'supplier_id', 'supply_id')
+      ->withPivot(['supplier_reference', 'unit_price', 'catalog_url'])
       ->withTimestamps();
   }
 
   public function commandes(): HasMany
   {
-    return $this->hasMany(Commande::class);
+    return $this->hasMany(Commande::class, 'supplier_id');
   }
 }

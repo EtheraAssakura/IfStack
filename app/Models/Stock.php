@@ -8,32 +8,37 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Stock extends Model
 {
-  protected $table = 'stocks';
+  protected $table = 'stock_items';
 
   protected $fillable = [
-    'fourniture_id',
-    'emplacement_id',
-    'quantite_estimee',
-    'seuil_alerte_local',
+    'supply_id',
+    'location_id',
+    'estimated_quantity',
+    'local_alert_threshold',
+  ];
+
+  protected $casts = [
+    'estimated_quantity' => 'integer',
+    'local_alert_threshold' => 'integer',
   ];
 
   public function fourniture(): BelongsTo
   {
-    return $this->belongsTo(Fourniture::class);
+    return $this->belongsTo(Fourniture::class, 'supply_id');
   }
 
   public function emplacement(): BelongsTo
   {
-    return $this->belongsTo(Emplacement::class);
+    return $this->belongsTo(Emplacement::class, 'location_id');
   }
 
   public function alertes(): HasMany
   {
-    return $this->hasMany(Alerte::class);
+    return $this->hasMany(Alerte::class, 'stock_id');
   }
 
   public function estEnRupture(): bool
   {
-    return $this->quantite_estimee <= ($this->seuil_alerte_local ?? $this->fourniture->seuil_alerte_global);
+    return $this->estimated_quantity <= $this->local_alert_threshold;
   }
 }

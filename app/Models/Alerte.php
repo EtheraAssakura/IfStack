@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Alerte extends Model
 {
-  protected $table = 'alertes';
+  protected $table = 'alerts';
 
   protected $fillable = [
     'stock_id',
     'user_id',
     'type',
-    'commentaire',
-    'traitee',
+    'comment',
+    'processed',
   ];
 
   protected $casts = [
-    'traitee' => 'boolean',
+    'processed' => 'boolean',
   ];
 
   public function stock(): BelongsTo

@@ -9,35 +9,35 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Fourniture extends Model
 {
+  protected $table = 'supplies';
+
   protected $fillable = [
-    'nom',
-    'reference_isfac',
-    'conditionnement',
-    'url_catalogue',
-    'seuil_alerte_global',
+    'name',
+    'reference',
+    'packaging',
     'image_url',
-    'categorie_id',
+    'category_id',
   ];
 
   public function categorie(): BelongsTo
   {
-    return $this->belongsTo(Categorie::class);
+    return $this->belongsTo(Categorie::class, 'category_id');
   }
 
   public function fournisseurs(): BelongsToMany
   {
-    return $this->belongsToMany(Fournisseur::class, 'fourniture_fournisseur')
-      ->withPivot(['reference_fournisseur', 'prix_unitaire'])
+    return $this->belongsToMany(Fournisseur::class, 'supply_supplier', 'supply_id', 'supplier_id')
+      ->withPivot(['supplier_reference', 'unit_price', 'catalog_url'])
       ->withTimestamps();
   }
 
   public function stocks(): HasMany
   {
-    return $this->hasMany(Stock::class);
+    return $this->hasMany(Stock::class, 'supply_id');
   }
 
   public function alertes()
   {
-    return $this->hasManyThrough(Alerte::class, Stock::class);
+    return $this->hasManyThrough(Alerte::class, Stock::class, 'supply_id');
   }
 }

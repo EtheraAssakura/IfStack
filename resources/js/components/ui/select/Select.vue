@@ -3,14 +3,14 @@ import { cn } from '@/lib/utils';
 import { computed } from 'vue';
 
 interface Props {
-    modelValue?: string | number;
+    modelValue: string | number;
     class?: string;
 }
 
 const props = defineProps<Props>();
 
 const emits = defineEmits<{
-    'update:modelValue': [value: string | number];
+    'update:modelValue': [value: string];
 }>();
 
 const classes = computed(() => {
@@ -24,17 +24,14 @@ const classes = computed(() => {
     );
 });
 
-const handleInput = (event: Event) => {
-    const target = event.target as HTMLInputElement;
+const handleChange = (event: Event) => {
+    const target = event.target as HTMLSelectElement;
     emits('update:modelValue', target.value);
 };
 </script>
 
 <template>
-    <input
-        :value="modelValue"
-        :class="classes"
-        @input="handleInput"
-        v-bind="$attrs"
-    />
-</template>
+    <select :value="modelValue" :class="classes" @change="handleChange">
+        <slot />
+    </select>
+</template> 

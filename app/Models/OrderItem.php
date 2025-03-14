@@ -11,11 +11,8 @@ class OrderItem extends Model
         'order_id',
         'supply_id',
         'quantity',
-        'unit_price'
-    ];
-
-    protected $casts = [
-        'unit_price' => 'decimal:2'
+        'unit_price',
+        'notes'
     ];
 
     public function order(): BelongsTo

@@ -7,22 +7,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Etablissement extends Model
 {
-  protected $table = 'etablissements';
+  protected $table = 'sites';
 
   protected $fillable = [
-    'nom',
-    'adresse',
-    'ville',
-    'code_postal',
+    'name',
+    'address',
+    'city',
+    'postal_code',
+    'slug',
   ];
 
   public function emplacements(): HasMany
   {
-    return $this->hasMany(Emplacement::class);
+    return $this->hasMany(Emplacement::class, 'site_id');
   }
 
   public function stocks()
   {
-    return $this->hasManyThrough(Stock::class, Emplacement::class);
+    return $this->hasManyThrough(Stock::class, Emplacement::class, 'site_id', 'location_id');
   }
 }

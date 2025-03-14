@@ -10,15 +10,14 @@ class Delivery extends Model
 {
     protected $fillable = [
         'order_id',
-        'user_id',
-        'expected_date',
-        'actual_date',
-        'status'
+        'delivery_date',
+        'status',
+        'notes',
+        'user_id'
     ];
 
     protected $casts = [
-        'expected_date' => 'date',
-        'actual_date' => 'date'
+        'delivery_date' => 'datetime'
     ];
 
     public function order(): BelongsTo
@@ -26,18 +25,13 @@ class Delivery extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function deliveryItems(): HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(DeliveryItem::class);
     }
 
-    public function stockMovements(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(StockMovement::class);
+        return $this->belongsTo(User::class);
     }
 }

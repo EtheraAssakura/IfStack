@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 interface Props {
     alertStocks: Array<{
         id: number;
         supply: {
+            id: number;
             name: string;
             reference: string;
         };
         location: {
+            id: number;
             name: string;
             site: {
                 name: string;
@@ -71,7 +75,7 @@ interface Props {
     }>;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItemType[] = [
     {
@@ -87,6 +91,23 @@ const formattedDate = (date: string) => {
         day: 'numeric'
     });
 };
+
+const stocksEnAlerte = computed(() => {
+    console.log('Tous les stocks:', props.alertStocks);
+    const filtered = props.alertStocks.filter(stock => {
+        const seuilAlerte = stock.local_alert_threshold;
+        console.log('Stock:', {
+            id: stock.id,
+            estimated_quantity: stock.estimated_quantity,
+            local_alert_threshold: stock.local_alert_threshold,
+            seuilAlerte: seuilAlerte,
+            isAlert: stock.estimated_quantity <= seuilAlerte
+        });
+        return stock.estimated_quantity <= seuilAlerte;
+    });
+    console.log('Stocks filtrés:', filtered);
+    return filtered;
+});
 </script>
 
 <template>
@@ -130,16 +151,32 @@ const formattedDate = (date: string) => {
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seuil d'alerte</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="stock in alertStocks" :key="stock.id">
+                                <tr v-for="stock in stocksEnAlerte" :key="stock.id">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ stock.supply.reference }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.supply.name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.location.name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.location.site.name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{ stock.estimated_quantity }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.local_alert_threshold }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.local_alert_threshold ?? stock.supply.global_alert_threshold }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm"
+                                            as-child
+                                        >
+                                            <Link :href="route('commandes.create', { 
+                                                fourniture_id: stock.supply.id,
+                                                emplacement_id: stock.location.id,
+                                                site: stock.location.site.name
+                                            })">
+                                                Commander
+                                            </Link>
+                                        </Button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

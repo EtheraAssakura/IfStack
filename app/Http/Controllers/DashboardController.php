@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Alert;
+use App\Models\Alerte;
 use App\Models\Order;
 use App\Models\Supply;
 use App\Models\Delivery;
@@ -17,11 +17,44 @@ class DashboardController extends Controller
     {
         // Stocks en alerte
         $alertStocks = StockItem::with(['supply', 'location.site'])
-            ->whereRaw('estimated_quantity <= COALESCE(local_alert_threshold, (SELECT alert_threshold FROM supplies WHERE id = stock_items.supply_id))')
+            ->whereRaw('estimated_quantity <= COALESCE(local_alert_threshold, 999999)')
             ->get();
 
+        $allStocks = StockItem::with(['supply', 'location.site'])->get();
+        $allSupplies = Supply::all();
+
+        $stocksWithThresholds = $allStocks->map(function ($stock) {
+            $effectiveThreshold = min(
+                [$stock->local_alert_threshold ?? PHP_INT_MAX]
+            );
+            return [
+                'id' => $stock->id,
+                'supply_id' => $stock->supply_id,
+                'estimated_quantity' => $stock->estimated_quantity,
+                'local_alert_threshold' => $stock->local_alert_threshold,
+                'global_alert_threshold' => $stock->supply->alert_threshold,
+                'effective_threshold' => $effectiveThreshold,
+                'is_below_threshold' => $stock->estimated_quantity <= $effectiveThreshold
+            ];
+        });
+
+        $alertStocksDetails = $alertStocks->map(function ($stock) {
+            $effectiveThreshold = min(
+                [$stock->local_alert_threshold ?? PHP_INT_MAX]
+            );
+            return [
+                'id' => $stock->id,
+                'supply_id' => $stock->supply_id,
+                'supply_name' => $stock->supply->name,
+                'estimated_quantity' => $stock->estimated_quantity,
+                'local_alert_threshold' => $stock->local_alert_threshold,
+                'effective_threshold' => $effectiveThreshold,
+                'is_below_local' => $stock->estimated_quantity <= $stock->local_alert_threshold,
+            ];
+        });
+
         // Alertes non traitées
-        $unhandledAlerts = Alert::with(['stockItem.supply', 'stockItem.location.site', 'user'])
+        $unhandledAlerts = Alerte::with(['stock.fourniture', 'stock.emplacement.etablissement', 'user'])
             ->where('processed', false)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -70,7 +103,7 @@ class DashboardController extends Controller
     {
         // Stocks en alerte
         $alertStocks = StockItem::with(['supply', 'location.site'])
-            ->whereRaw('estimated_quantity <= COALESCE(local_alert_threshold, (SELECT alert_threshold FROM supplies WHERE id = stock_items.supply_id))')
+            ->whereRaw('estimated_quantity <= COALESCE(local_alert_threshold, 999999)')
             ->get();
 
         // Livraisons effectuées et planifiées
@@ -86,7 +119,7 @@ class DashboardController extends Controller
 
         // Top produits en alerte
         $topAlertProducts = DB::table('alerts')
-            ->join('stock_items', 'stock_items.id', '=', 'alerts.stock_item_id')
+            ->join('stock_items', 'stock_items.id', '=', 'alerts.stock_id')
             ->join('supplies', 'supplies.id', '=', 'stock_items.supply_id')
             ->select('supplies.name', 'supplies.reference', DB::raw('COUNT(*) as total_alerts'))
             ->groupBy('supplies.id', 'supplies.name', 'supplies.reference')

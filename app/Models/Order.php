@@ -9,17 +9,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     protected $fillable = [
-        'reference',
+        'order_number',
         'supplier_id',
-        'user_id',
-        'status',
         'order_date',
-        'expected_delivery_date'
+        'expected_delivery_date',
+        'status',
+        'notes',
+        'user_id'
     ];
 
     protected $casts = [
-        'order_date' => 'date',
-        'expected_delivery_date' => 'date'
+        'order_date' => 'datetime',
+        'expected_delivery_date' => 'datetime'
     ];
 
     public function supplier(): BelongsTo
@@ -27,12 +28,7 @@ class Order extends Model
         return $this->belongsTo(Supplier::class);
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function orderItems(): HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
@@ -42,8 +38,8 @@ class Order extends Model
         return $this->hasMany(Delivery::class);
     }
 
-    public function stockMovements(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(StockMovement::class);
+        return $this->belongsTo(User::class);
     }
 }

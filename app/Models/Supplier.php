@@ -4,24 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
     protected $fillable = [
         'name',
-        'catalog_url'
+        'contact_name',
+        'email',
+        'phone',
+        'address',
+        'website'
     ];
 
     public function supplies(): BelongsToMany
     {
         return $this->belongsToMany(Supply::class)
-            ->withPivot(['supplier_reference', 'unit_price'])
+            ->withPivot(['supplier_reference', 'unit_price', 'catalog_url'])
             ->withTimestamps();
-    }
-
-    public function orders(): HasMany
-    {
-        return $this->hasMany(Order::class);
     }
 }

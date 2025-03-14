@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import StockList from '@/Components/Stock/StockList.vue';
-import StockMovementList from '@/Components/Stock/StockMovementList.vue';
-import TransferModal from '@/Components/Stock/TransferModal.vue';
+import StockList from '@/components/Stock/StockList.vue';
+import StockMovementList from '@/components/Stock/StockMovementList.vue';
+import TransferModal from '@/components/Stock/TransferModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';

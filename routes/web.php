@@ -23,26 +23,35 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', function () {
+        return Inertia::render('Welcome', [
+            'canLogin' => Route::has('login'),
+            'canRegister' => Route::has('register'),
+        ]);
+    });
 
-Route::middleware(['auth'])->group(function () {
-    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/rapport-hebdomadaire', [DashboardController::class, 'generateWeeklyReport'])->name('rapport.hebdomadaire');
 
-    // Fournitures
-    Route::resource('fournitures', FournitureController::class);
-
-    // Stocks
+    // Routes des stocks
     Route::get('/stocks', [StockController::class, 'index'])->name('stocks.index');
+    Route::get('/stocks/sites', [StockController::class, 'sites'])->name('stocks.sites');
+    Route::get('/stocks/by-site', [StockController::class, 'stocksBySite'])->name('stocks.by-site');
     Route::get('/stocks/{stock}', [StockController::class, 'show'])->name('stocks.show');
     Route::get('/stocks/{stock}/edit', [StockController::class, 'edit'])->name('stocks.edit');
     Route::put('/stocks/{stock}', [StockController::class, 'update'])->name('stocks.update');
-    Route::post('/stocks/{stock}/rupture', [StockController::class, 'signalRupture'])->name('stocks.rupture');
+    Route::post('/stocks/{stock}/signal-rupture', [StockController::class, 'signalRupture'])->name('stocks.signal-rupture');
     Route::get('/stocks/scan/{qrCode}', [StockController::class, 'scanQr'])->name('stocks.scan');
-    Route::get('/stocks/export/csv', [StockController::class, 'export'])->name('stocks.export');
+    Route::get('/stocks/export', [StockController::class, 'export'])->name('stocks.export');
+
+    // Routes des fournitures
+    Route::get('/fournitures', [FournitureController::class, 'index'])->name('fournitures.index');
+    Route::get('/fournitures/create', [FournitureController::class, 'create'])->name('fournitures.create');
+    Route::post('/fournitures', [FournitureController::class, 'store'])->name('fournitures.store');
+    Route::get('/fournitures/{fourniture}', [FournitureController::class, 'show'])->name('fournitures.show');
+    Route::get('/fournitures/{fourniture}/edit', [FournitureController::class, 'edit'])->name('fournitures.edit');
+    Route::put('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
+    Route::delete('/fournitures/{fourniture}', [FournitureController::class, 'destroy'])->name('fournitures.destroy');
 
     // Commandes
     Route::resource('commandes', CommandeController::class);
@@ -104,13 +113,6 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
-});
-
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
-    // Routes pour la gestion des stocks
-    Route::get('/stocks', function () {
-        return Inertia::render('Stock/Index');
-    })->name('stocks.index');
 });
 
 require __DIR__ . '/settings.php';

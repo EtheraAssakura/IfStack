@@ -107,8 +107,12 @@ const footerNavItems: NavItem[] = [
 
         <SidebarContent>
             <!-- Navigation principale -->
-            <NavMain :items="mainNavItems" />
-
+             <div class="mt-4">
+                <h4 class="mb-1 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Gestion
+                </h4>
+                <NavMain :items="mainNavItems" />
+            </div>
             <!-- Navigation admin -->
             <div class="mt-4">
                 <h4 class="mb-1 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
