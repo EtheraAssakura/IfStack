@@ -1,93 +1,135 @@
-<template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Établissements</h1>
-      <Link
-        :href="route('etablissements.create')"
-        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Nouvel Établissement
-      </Link>
-    </div>
-
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Nom
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Email
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Téléphone
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="etablissement in etablissements" :key="etablissement.id">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">{{ etablissement.name }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ etablissement.email }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ etablissement.phone }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <Link
-                :href="route('etablissements.edit', etablissement.id)"
-                class="text-indigo-600 hover:text-indigo-900 mr-4"
-              >
-                Modifier
-              </Link>
-              <button
-                @click="deleteEtablissement(etablissement.id)"
-                class="text-red-600 hover:text-red-900"
-              >
-                Supprimer
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3'
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
+import { Button } from '@/components/ui/button';
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
+import type { BreadcrumbItemType } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
 
-const etablissements = ref([])
-
-const fetchEtablissements = async () => {
-  try {
-    const response = await axios.get(route('api.etablissements.index'))
-    etablissements.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des établissements:', error)
-  }
+interface Etablissement {
+    id: number;
+    name: string;
+    address: string;
+    city: string;
+    postal_code: string;
+    phone: string | null;
+    email: string | null;
+    emplacements_count: number;
+    stocks_count: number;
 }
 
-const deleteEtablissement = async (id) => {
-  if (confirm('Êtes-vous sûr de vouloir supprimer cet établissement ?')) {
-    try {
-      await axios.delete(route('api.etablissements.destroy', id))
-      await fetchEtablissements()
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error)
+interface Props {
+    etablissements: Etablissement[];
+}
+
+const props = defineProps<Props>();
+
+const breadcrumbs: BreadcrumbItemType[] = [
+    {
+        title: 'Établissements',
+        href: '/etablissements',
+    },
+];
+
+const deleteEtablissement = (id: number) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet établissement ?')) {
+        router.delete(route('etablissements.destroy', id));
     }
-  }
-}
+};
+</script>
 
-onMounted(() => {
-  fetchEtablissements()
-})
-</script> 
+<template>
+    <AppSidebarLayout :breadcrumbs="breadcrumbs">
+        <Head>
+            <title>Établissements - ISFAC</title>
+        </Head>
+
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 class="text-3xl font-bold tracking-tight">Établissements</h1>
+                        <p class="text-muted-foreground">
+                            Gestion des établissements
+                        </p>
+                    </div>
+                    <Button as-child>
+                        <Link :href="route('etablissements.create')">
+                            <Plus class="mr-2 h-4 w-4" />
+                            Nouvel établissement
+                        </Link>
+                    </Button>
+                </div>
+
+                <div v-if="etablissements.length === 0" class="text-center py-12">
+                    <p class="text-gray-500">Aucun établissement trouvé.</p>
+                </div>
+
+                <div v-else class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50/50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Nom
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Téléphone
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Email
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Emplacements
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 bg-white">
+                                    <tr v-for="etablissement in etablissements" :key="etablissement.id" class="group transition-colors hover:bg-gray-50/50">
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <div class="text-sm text-gray-900">{{ etablissement.name }}</div>
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <div class="text-sm text-gray-900">{{ etablissement.phone ?? '-' }}</div>
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <div class="text-sm text-gray-900">{{ etablissement.email ?? '-' }}</div>
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <div class="text-sm text-gray-900">{{ etablissement.emplacements_count }}</div>
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                                            <div class="flex justify-end gap-2">
+                                                <Link
+                                                    :href="route('etablissements.show', etablissement.id)"
+                                                    class="inline-flex items-center gap-2 text-gray-500 transition-colors hover:text-primary"
+                                                >
+                                                    Détails
+                                                </Link>
+                                                <Link
+                                                    :href="route('etablissements.edit', etablissement.id)"
+                                                    class="inline-flex items-center gap-2 text-gray-500 transition-colors hover:text-primary"
+                                                >
+                                                    <Pencil class="h-4 w-4" />
+                                                </Link>
+                                                <button
+                                                    @click="deleteEtablissement(etablissement.id)"
+                                                    class="inline-flex items-center gap-2 text-red-500 transition-colors hover:text-red-700"
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AppSidebarLayout>
+</template> 

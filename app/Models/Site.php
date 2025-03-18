@@ -12,7 +12,11 @@ class Site extends Model
         'address',
         'city',
         'postal_code',
-        'is_headquarters'
+        'is_headquarters',
+        'email',
+        'phone',
+        'slug',
+        'plan_path'
     ];
 
     protected $casts = [

@@ -1,97 +1,166 @@
-<template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold mb-6">Modifier l'Établissement</h1>
-
-      <form @submit.prevent="submit" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-            Nom
-          </label>
-          <input
-            v-model="form.name"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="name"
-            type="text"
-            required
-          >
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-            Email
-          </label>
-          <input
-            v-model="form.email"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="email"
-            type="email"
-          >
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
-            Téléphone
-          </label>
-          <input
-            v-model="form.phone"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="phone"
-            type="tel"
-          >
-        </div>
-
-        <div class="flex items-center justify-between">
-          <button
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="submit"
-          >
-            Mettre à jour
-          </button>
-          <Link
-            :href="route('etablissements.index')"
-            class="text-gray-600 hover:text-gray-800"
-          >
-            Annuler
-          </Link>
-        </div>
-      </form>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3'
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
+import type { BreadcrumbItemType } from '@/types';
+import { Head, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({
-  etablissement: {
-    type: Object,
-    required: true
-  }
-})
-
-const form = ref({
-  name: '',
-  email: '',
-  phone: ''
-})
-
-onMounted(() => {
-  form.value = {
-    name: props.etablissement.name,
-    email: props.etablissement.email,
-    phone: props.etablissement.phone
-  }
-})
-
-const submit = async () => {
-  try {
-    await axios.put(route('api.etablissements.update', props.etablissement.id), form.value)
-    window.location.href = route('etablissements.index')
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour:', error)
-  }
+interface Etablissement {
+    id: number;
+    name: string;
+    address: string;
+    city: string;
+    postal_code: string;
+    phone: string | null;
+    email: string | null;
+    plan_path: string | null;
 }
-</script> 
+
+interface Props {
+    etablissement: Etablissement;
+}
+
+const props = defineProps<Props>();
+
+const form = useForm({
+    name: props.etablissement.name,
+    address: props.etablissement.address,
+    city: props.etablissement.city,
+    postal_code: props.etablissement.postal_code,
+    phone: props.etablissement.phone ?? '',
+    email: props.etablissement.email ?? '',
+});
+
+const breadcrumbs: BreadcrumbItemType[] = [
+    {
+        title: 'Établissements',
+        href: '/etablissements',
+    },
+    {
+        title: props.etablissement.name,
+        href: `/etablissements/${props.etablissement.id}`,
+    },
+    {
+        title: 'Modifier',
+        href: `/etablissements/${props.etablissement.id}/edit`,
+    },
+];
+
+const handleSubmit = () => {
+    form.put(route('etablissements.update', props.etablissement.id));
+};
+</script>
+
+<template>
+    <AppSidebarLayout :breadcrumbs="breadcrumbs">
+        <Head>
+            <title>Modifier {{ etablissement.name }} - ISFAC</title>
+        </Head>
+
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                    <div class="p-6">
+                        <h1 class="text-2xl font-semibold mb-6">Modifier {{ etablissement.name }}</h1>
+
+                        <form @submit.prevent="handleSubmit" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <Label for="name">Nom</Label>
+                                    <Input
+                                        id="name"
+                                        v-model="form.name"
+                                        type="text"
+                                        required
+                                    />
+                                    <div v-if="form.errors.name" class="text-sm text-red-600">
+                                        {{ form.errors.name }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="address">Adresse</Label>
+                                    <Input
+                                        id="address"
+                                        v-model="form.address"
+                                        type="text"
+                                        required
+                                    />
+                                    <div v-if="form.errors.address" class="text-sm text-red-600">
+                                        {{ form.errors.address }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="city">Ville</Label>
+                                    <Input
+                                        id="city"
+                                        v-model="form.city"
+                                        type="text"
+                                        required
+                                    />
+                                    <div v-if="form.errors.city" class="text-sm text-red-600">
+                                        {{ form.errors.city }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="postal_code">Code Postal</Label>
+                                    <Input
+                                        id="postal_code"
+                                        v-model="form.postal_code"
+                                        type="text"
+                                        required
+                                    />
+                                    <div v-if="form.errors.postal_code" class="text-sm text-red-600">
+                                        {{ form.errors.postal_code }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="phone">Téléphone</Label>
+                                    <Input
+                                        id="phone"
+                                        v-model="form.phone"
+                                        type="tel"
+                                    />
+                                    <div v-if="form.errors.phone" class="text-sm text-red-600">
+                                        {{ form.errors.phone }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="email">Email</Label>
+                                    <Input
+                                        id="email"
+                                        v-model="form.email"
+                                        type="email"
+                                    />
+                                    <div v-if="form.errors.email" class="text-sm text-red-600">
+                                        {{ form.errors.email }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-4">
+                                <Button
+                                    variant="outline"
+                                    @click="route('etablissements.index')"
+                                >
+                                    Annuler
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    :disabled="form.processing"
+                                >
+                                    Mettre à jour
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AppSidebarLayout>
+</template> 

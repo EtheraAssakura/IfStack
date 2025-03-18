@@ -14,7 +14,10 @@ class Etablissement extends Model
     'address',
     'city',
     'postal_code',
-    'slug',
+    'phone',
+    'email',
+    'plan_path',
+    'slug'
   ];
 
   public function emplacements(): HasMany

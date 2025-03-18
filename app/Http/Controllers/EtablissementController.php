@@ -25,14 +25,17 @@ class EtablissementController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'adresse' => 'required|string',
-            'ville' => 'required|string|max:255',
-            'code_postal' => 'required|string|max:10',
-            'telephone' => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+            'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'plan' => 'nullable|image|max:5120' // 5MB max
         ]);
+
+        // Générer le slug à partir du nom
+        $validated['slug'] = 'isfac-' . strtolower(str_replace(' ', '-', $validated['name']));
 
         $etablissement = Etablissement::create($validated);
 
@@ -47,7 +50,7 @@ class EtablissementController extends Controller
 
     public function show(Etablissement $etablissement)
     {
-        $etablissement->load(['emplacements.stocks', 'stocks']);
+        $etablissement->load(['emplacements.stocks.fourniture', 'stocks.fourniture']);
         return Inertia::render('Etablissements/Show', [
             'etablissement' => $etablissement
         ]);
@@ -63,11 +66,11 @@ class EtablissementController extends Controller
     public function update(Request $request, Etablissement $etablissement)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'adresse' => 'required|string',
-            'ville' => 'required|string|max:255',
-            'code_postal' => 'required|string|max:10',
-            'telephone' => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+            'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255'
         ]);
 

@@ -93,19 +93,11 @@ const formattedDate = (date: string) => {
 };
 
 const stocksEnAlerte = computed(() => {
-    console.log('Tous les stocks:', props.alertStocks);
     const filtered = props.alertStocks.filter(stock => {
         const seuilAlerte = stock.local_alert_threshold;
-        console.log('Stock:', {
-            id: stock.id,
-            estimated_quantity: stock.estimated_quantity,
-            local_alert_threshold: stock.local_alert_threshold,
-            seuilAlerte: seuilAlerte,
-            isAlert: stock.estimated_quantity <= seuilAlerte
-        });
         return stock.estimated_quantity <= seuilAlerte;
     });
-    console.log('Stocks filtrés:', filtered);
+
     return filtered;
 });
 </script>

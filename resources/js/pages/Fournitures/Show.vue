@@ -131,10 +131,13 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ fournisseur.pivot.supplier_reference }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ fournisseur.pivot.unit_price }} €</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <a v-if="fournisseur.catalog_url" :href="fournisseur.catalog_url" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                          <a v-if="fournisseur.pivot.catalog_url || fournisseur.catalog_url" 
+                              :href="fournisseur.pivot.catalog_url || fournisseur.catalog_url" 
+                              target="_blank" 
+                              class="text-sm text-indigo-600 hover:text-indigo-900">
                             Voir
                           </a>
-                          <span v-else>-</span>
+                          <span v-else class="text-sm text-gray-500">-</span>
                         </td>
                       </tr>
                     </tbody>
