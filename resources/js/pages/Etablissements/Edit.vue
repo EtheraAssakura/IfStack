@@ -30,6 +30,7 @@ const form = useForm({
     postal_code: props.etablissement.postal_code,
     phone: props.etablissement.phone ?? '',
     email: props.etablissement.email ?? '',
+    plan: null as File | null,
 });
 
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -46,6 +47,11 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/etablissements/${props.etablissement.id}/edit`,
     },
 ];
+
+const handlePlanChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    form.plan = input.files?.[0] || null;
+};
 
 const handleSubmit = () => {
     form.put(route('etablissements.update', props.etablissement.id));
@@ -139,6 +145,22 @@ const handleSubmit = () => {
                                     />
                                     <div v-if="form.errors.email" class="text-sm text-red-600">
                                         {{ form.errors.email }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="plan">Plan (optionnel)</Label>
+                                    <Input
+                                        id="plan"
+                                        type="file"
+                                        accept="image/*"
+                                        @change="handlePlanChange"
+                                    />
+                                    <div v-if="form.errors.plan" class="text-sm text-red-600">
+                                        {{ form.errors.plan }}
+                                    </div>
+                                    <div v-if="etablissement.plan_path" class="text-sm text-gray-500">
+                                        Plan actuel : {{ etablissement.plan_path }}
                                     </div>
                                 </div>
                             </div>

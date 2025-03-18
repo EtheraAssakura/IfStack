@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 
 interface Stock {
@@ -104,45 +103,68 @@ const getStockValue = (stock: Stock, path: string) => {
                 <div v-else class="space-y-6">
                     <div v-for="(stocks, etablissement) in props.stocks" :key="etablissement" class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                         <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ etablissement }}</h3>
-                            <p class="text-sm text-gray-500 mb-4">
-                                Liste des stocks disponibles dans cet établissement
-                            </p>
                             <div class="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Emplacement</TableHead>
-                                            <TableHead>Fourniture</TableHead>
-                                            <TableHead>Référence</TableHead>
-                                            <TableHead class="text-right">Quantité</TableHead>
-                                            <TableHead class="text-right">Seuil local</TableHead>
-                                            <TableHead>Statut</TableHead>
-                                            <TableHead class="text-right">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        <TableRow v-for="stock in stocks" :key="stock.id">
-                                            <TableCell>{{ getStockValue(stock, 'emplacement.name') }}</TableCell>
-                                            <TableCell>{{ getStockValue(stock, 'fourniture.name') }}</TableCell>
-                                            <TableCell>{{ getStockValue(stock, 'fourniture.reference') }}</TableCell>
-                                            <TableCell class="text-right">{{ stock.estimated_quantity ?? '-' }}</TableCell>
-                                            <TableCell class="text-right">{{ stock.local_alert_threshold ?? '-' }}</TableCell>
-                                            <TableCell>
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50/50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Emplacement
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Fourniture
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Référence
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Quantité
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Seuil local
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Statut
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 bg-white">
+                                        <tr v-for="stock in stocks" :key="stock.id" class="group transition-colors hover:bg-gray-50/50">
+                                            <td class="whitespace-nowrap px-6 py-4">
+                                                <div class="text-sm text-gray-900">{{ getStockValue(stock, 'emplacement.name') }}</div>
+                                            </td>
+                                            <td class="whitespace-nowrap px-6 py-4">
+                                                <div class="text-sm text-gray-900">{{ getStockValue(stock, 'fourniture.name') }}</div>
+                                            </td>
+                                            <td class="whitespace-nowrap px-6 py-4">
+                                                <div class="text-sm text-gray-900">{{ getStockValue(stock, 'fourniture.reference') }}</div>
+                                            </td>
+                                            <td class="whitespace-nowrap px-6 py-4 text-right">
+                                                <div class="text-sm text-gray-900">{{ stock.estimated_quantity ?? '-' }}</div>
+                                            </td>
+                                            <td class="whitespace-nowrap px-6 py-4 text-right">
+                                                <div class="text-sm text-gray-900">{{ stock.local_alert_threshold ?? '-' }}</div>
+                                            </td>
+                                            <td class="whitespace-nowrap px-6 py-4">
                                                 <Badge :variant="getBadgeVariant(stock)">
                                                     {{ getBadgeText(stock) }}
                                                 </Badge>
-                                            </TableCell>
-                                            <TableCell class="text-right">
-                                                <Button variant="ghost" size="sm" as-child>
-                                                    <Link :href="route('stocks.show', stock.id)">
+                                            </td>
+                                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                                                <div class="flex justify-end gap-2">
+                                                    <Link
+                                                        :href="route('stocks.show', stock.id)"
+                                                        class="inline-flex items-center gap-2 text-gray-500 transition-colors hover:text-primary"
+                                                    >
                                                         Détails
                                                     </Link>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody>
-                                </Table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
