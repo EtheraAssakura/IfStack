@@ -1,0 +1,9 @@
+[33m744a8b5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33m744a8b5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: pull: Merge made by the 'ort' strategy.
+[33m594f2b0[m HEAD@{2}: commit: Ajout Stocks et Fournitures CRUD
+[33m2d8580b[m HEAD@{3}: pull: Fast-forward
+[33ma963f11[m HEAD@{4}: pull: Fast-forward
+[33m348aaf0[m HEAD@{5}: pull: Fast-forward
+[33mce41646[m HEAD@{6}: commit: add logo update looping
+[33m96698ec[m HEAD@{7}: commit: Ajout Laravel
+[33mf2ed4a3[m HEAD@{8}: clone: from https://github.com/EtheraAssakura/IfStack.git
