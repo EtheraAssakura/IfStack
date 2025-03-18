@@ -39,7 +39,7 @@
                 </td>
                 <td>
                   <div class="btn-group">
-                    <router-link :to="{ name: 'emplacements.show', params: { id: emplacement.id }}"
+                    <router-link :to="{ name: 'locations.show', params: { id: emplacement.id }}"
                                 class="btn btn-sm btn-info">
                       <i class="fas fa-eye"></i>
                     </router-link>

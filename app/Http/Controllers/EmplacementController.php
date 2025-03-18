@@ -41,7 +41,7 @@ class EmplacementController extends Controller
 
   public function show(Emplacement $emplacement)
   {
-    return view('emplacements.show', compact('emplacement'));
+    return view('locations.show', compact('emplacement'));
   }
 
   public function edit(Emplacement $emplacement)
@@ -88,7 +88,7 @@ class EmplacementController extends Controller
     $path = $request->file('photo')->store('emplacements', 'public');
     $emplacement->update(['photo_path' => $path]);
 
-    return redirect()->route('emplacements.show', $emplacement)
+    return redirect()->route('locations.show', $emplacement)
       ->with('success', 'Photo mise à jour avec succès.');
   }
 }

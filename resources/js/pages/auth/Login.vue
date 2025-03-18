@@ -18,7 +18,7 @@ const submit = () => {
     <Head title="Log in to IfStack" />
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#d2e9f7] to-[#a7d5e9] dark:from-[#1d6d83] dark:to-[#023048] p-6">
         <div class="w-full max-w-md transform-gpu will-change-transform backface-visibility-hidden perspective-1000 transition-all duration-300 hover:scale-[1.02]">
-            <div class="bg-white/90 backdrop-blur-lg dark:bg-[#023049]/90 rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.7)] p-8 space-y-6">
+            <div class="bg-white/90  dark:bg-[#023049]/90 rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.7)] p-8 space-y-6">
                 <div class="text-center space-y-4">
                     <img src="/Logo.png" alt="IfStack Logo" class="mx-auto w-32 h-auto transform transition-transform duration-300 hover:rotate-3" />
                     <h2 class="text-3xl font-bold bg-gradient-to-r from-[#023048] to-[#319cb3] dark:from-[#d2e9f7] dark:to-[#319cb3] bg-clip-text text-transparent">

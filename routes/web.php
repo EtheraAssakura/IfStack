@@ -11,6 +11,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RapportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\LocationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -68,16 +70,6 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::post('/livraisons/{livraison}/effectuer', [LivraisonController::class, 'effectuer'])->name('livraisons.effectuer');
     Route::get('/livraisons/{livraison}/bon', [LivraisonController::class, 'generateBonLivraison'])->name('livraisons.bon');
 
-    // Emplacements
-    Route::get('/emplacements', [EmplacementController::class, 'index'])->name('emplacements.index');
-    Route::get('/emplacements/create', [EmplacementController::class, 'create'])->name('emplacements.create');
-    Route::post('/emplacements', [EmplacementController::class, 'store'])->name('emplacements.store');
-    Route::get('/emplacements/{emplacement}', [EmplacementController::class, 'show'])->name('emplacements.show');
-    Route::get('/emplacements/{emplacement}/edit', [EmplacementController::class, 'edit'])->name('emplacements.edit');
-    Route::put('/emplacements/{emplacement}', [EmplacementController::class, 'update'])->name('emplacements.update');
-    Route::delete('/emplacements/{emplacement}', [EmplacementController::class, 'destroy'])->name('emplacements.destroy');
-    Route::post('/emplacements/{emplacement}/upload-photo', [EmplacementController::class, 'uploadPhoto'])->name('emplacements.upload-photo');
-
     // Établissements
     Route::get('/etablissements', [EtablissementController::class, 'index'])->name('etablissements.index');
     Route::get('/etablissements/create', [EtablissementController::class, 'create'])->name('etablissements.create');
@@ -88,8 +80,14 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::delete('/etablissements/{etablissement}', [EtablissementController::class, 'destroy'])->name('etablissements.destroy');
     Route::post('/etablissements/{etablissement}/upload-plan', [EtablissementController::class, 'uploadPlan'])->name('etablissements.upload-plan');
 
-    // Gestion des utilisateurs (restreint aux administrateurs)
+    // Emplacements dans les établissements
+    Route::post('/etablissements/{etablissement}/locations', [LocationController::class, 'store'])->name('etablissements.locations.store');
+    Route::get('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'show'])->name('etablissements.locations.show');
+    Route::put('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'update'])->name('etablissements.locations.update');
+    Route::delete('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'destroy'])->name('etablissements.locations.destroy');
+    Route::post('/etablissements/{etablissement}/locations/{location}/upload-photo', [LocationController::class, 'uploadPhoto'])->name('etablissements.locations.upload-photo');
 
+    // Gestion des utilisateurs (restreint aux administrateurs)
     Route::get('/utilisateurs', [UserController::class, 'index'])->name('utilisateurs.index');
     Route::get('/utilisateurs/create', [UserController::class, 'create'])->name('utilisateurs.create');
     Route::post('/utilisateurs', [UserController::class, 'store'])->name('utilisateurs.store');
@@ -97,7 +95,6 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::put('/utilisateurs/{user}', [UserController::class, 'update'])->name('utilisateurs.update');
     Route::delete('/utilisateurs/{user}', [UserController::class, 'destroy'])->name('utilisateurs.destroy');
     Route::post('/utilisateurs/{user}/role', [UserController::class, 'updateRole'])->name('utilisateurs.role');
-
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -113,6 +110,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
+    Route::resource('categories', CategoryController::class);
 });
 
 require __DIR__ . '/settings.php';

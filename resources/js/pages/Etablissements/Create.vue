@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import FileUpload from '@/components/ui/file-upload.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
     name: '',
@@ -128,11 +129,10 @@ const handleSubmit = () => {
 
                                 <div class="space-y-2">
                                     <Label for="plan">Plan (optionnel)</Label>
-                                    <Input
-                                        id="plan"
-                                        type="file"
+                                    <FileUpload
+                                        v-model="form.plan"
                                         accept="image/*"
-                                        @change="e => form.plan = e.target.files[0]"
+                                        :max-size="5 * 1024 * 1024"
                                     />
                                     <div v-if="form.errors.plan" class="text-sm text-red-600">
                                         {{ form.errors.plan }}
@@ -144,7 +144,7 @@ const handleSubmit = () => {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    @click="$inertia.visit(route('etablissements.index'))"
+                                    @click="router.visit(route('etablissements.index'))"
                                 >
                                     Annuler
                                 </Button>
@@ -161,4 +161,4 @@ const handleSubmit = () => {
             </div>
         </div>
     </AppSidebarLayout>
-</template> 
+</template>

@@ -6,6 +6,8 @@ import { Select } from '@/components/ui/select';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
+import { useDropZone } from '@vueuse/core';
+import { ref } from 'vue';
 
 interface Props {
   categories: Array<{
@@ -19,6 +21,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const dropZone = ref<HTMLDivElement>();
+const isDragging = ref(false);
+const preview = ref<string | null>(null);
 
 const form = useForm({
   name: '',
@@ -44,6 +49,43 @@ const breadcrumbs: BreadcrumbItem[] = [
     href: route('fournitures.create'),
   },
 ];
+
+const { isOverDropZone } = useDropZone(dropZone, {
+  onDrop: (files: File[]) => {
+    const file = files[0];
+    if (file && file.type.startsWith('image/')) {
+      form.image = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.value = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  },
+  onEnter: () => {
+    isDragging.value = true;
+  },
+  onLeave: () => {
+    isDragging.value = false;
+  },
+});
+
+const handleFileInput = (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (file) {
+    form.image = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const removeImage = () => {
+  form.image = null;
+  preview.value = null;
+};
 
 const addFournisseur = () => {
   form.fournisseurs.push({
@@ -136,12 +178,63 @@ const submit = () => {
 
                 <div>
                   <Label for="image">Image</Label>
-                  <Input
-                    id="image"
-                    type="file"
-                    class="mt-1 block w-full"
-                    @input="form.image = $event.target.files[0]"
-                  />
+                  <div
+                    ref="dropZone"
+                    class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 rounded-md"
+                    :class="{
+                      'border-gray-300': !isOverDropZone && !isDragging,
+                      'border-indigo-500 bg-indigo-50': isOverDropZone || isDragging,
+                      'border-dashed': !preview
+                    }"
+                  >
+                    <div class="space-y-1 text-center">
+                      <div v-if="preview" class="relative">
+                        <img :src="preview" alt="Aperçu" class="mx-auto h-32 w-auto object-contain" />
+                        <button
+                          type="button"
+                          @click="removeImage"
+                          class="absolute -top-2 -right-2 rounded-full bg-red-500 text-white p-1 hover:bg-red-600"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div v-else>
+                        <svg
+                          class="mx-auto h-12 w-12 text-gray-400"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 48 48"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                          <label
+                            for="image"
+                            class="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                          >
+                            <span>Télécharger un fichier</span>
+                            <input
+                              id="image"
+                              type="file"
+                              class="sr-only"
+                              accept="image/*"
+                              @input="handleFileInput"
+                            />
+                          </label>
+                          <p class="pl-1">ou glisser-déposer</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG jusqu'à 10MB</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -248,4 +341,18 @@ const submit = () => {
       </div>
     </div>
   </AppSidebarLayout>
-</template> 
+</template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+</style>

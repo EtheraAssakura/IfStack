@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import FileUpload from '@/components/ui/file-upload.vue';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
 
 interface Emplacement {
     id: number;
@@ -51,6 +57,42 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/etablissements/${props.etablissement.id}`,
     },
 ];
+
+const locationForm = useForm({
+    name: '',
+    description: '',
+    etablissement_id: props.etablissement.id,
+    photo: null as File | null,
+});
+
+const editLocationForm = useForm({
+    name: '',
+    description: '',
+    photo: null as File | null,
+});
+
+const handleCreateLocation = () => {
+    locationForm.post(route('etablissements.locations.store', props.etablissement.id), {
+        onSuccess: () => {
+            locationForm.reset();
+        },
+    });
+};
+
+const handleEditLocation = (locationId: number) => {
+    editLocationForm.post(route('etablissements.locations.update', [props.etablissement.id, locationId]));
+};
+
+const handleDeleteLocation = (locationId: number) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet emplacement ?')) {
+        router.delete(route('etablissements.locations.destroy', [props.etablissement.id, locationId]));
+    }
+};
+
+const initEditForm = (emplacement: Emplacement) => {
+    editLocationForm.name = emplacement.name;
+    editLocationForm.description = emplacement.description;
+};
 </script>
 
 <template>
@@ -115,19 +157,162 @@ const breadcrumbs: BreadcrumbItemType[] = [
 
                         <!-- Emplacements -->
                         <div class="bg-gray-50 rounded-lg p-6">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Emplacements</h2>
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-medium text-gray-900">Emplacements</h2>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm">
+                                            <Plus class="h-4 w-4 mr-2" />
+                                            Nouvel emplacement
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Nouvel emplacement</DialogTitle>
+                                        </DialogHeader>
+                                        <form @submit.prevent="handleCreateLocation" class="space-y-4">
+                                            <div class="space-y-2">
+                                                <Label for="name">Nom</Label>
+                                                <Input
+                                                    id="name"
+                                                    v-model="locationForm.name"
+                                                    type="text"
+                                                    required
+                                                />
+                                                <div v-if="locationForm.errors.name" class="text-sm text-red-600">
+                                                    {{ locationForm.errors.name }}
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="description">Description</Label>
+                                                <Textarea
+                                                    id="description"
+                                                    v-model="locationForm.description"
+                                                    rows="3"
+                                                />
+                                                <div v-if="locationForm.errors.description" class="text-sm text-red-600">
+                                                    {{ locationForm.errors.description }}
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="photo">Photo</Label>
+                                                <FileUpload
+                                                    v-model="locationForm.photo"
+                                                    accept="image/*"
+                                                    :max-size="2 * 1024 * 1024"
+                                                />
+                                                <div v-if="locationForm.errors.photo" class="text-sm text-red-600">
+                                                    {{ locationForm.errors.photo }}
+                                                </div>
+                                            </div>
+
+                                            <div class="flex justify-end gap-4">
+                                                <DialogTrigger asChild>
+                                                    <Button type="button" variant="outline">
+                                                        Annuler
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <Button
+                                                    type="submit"
+                                                    :disabled="locationForm.processing"
+                                                >
+                                                    Créer
+                                                </Button>
+                                            </div>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
                             <div v-if="etablissement.emplacements.length === 0" class="text-center py-8 text-sm text-gray-500">
                                 Aucun emplacement disponible
                             </div>
                             <div v-else class="space-y-4">
                                 <div v-for="emplacement in etablissement.emplacements" :key="emplacement.id" class="p-4 bg-white rounded-lg shadow-sm">
-                                    <h3 class="text-base font-medium text-gray-900">{{ emplacement.name }}</h3>
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-base font-medium text-gray-900">{{ emplacement.name }}</h3>
+                                        <div class="flex items-center gap-2">
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="sm" @click="initEditForm(emplacement)">
+                                                        <Pencil class="h-4 w-4" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Modifier l'emplacement</DialogTitle>
+                                                    </DialogHeader>
+                                                    <form @submit.prevent="handleEditLocation(emplacement.id)" class="space-y-4">
+                                                        <div class="space-y-2">
+                                                            <Label for="edit-name">Nom</Label>
+                                                            <Input
+                                                                id="edit-name"
+                                                                v-model="editLocationForm.name"
+                                                                type="text"
+                                                                required
+                                                            />
+                                                            <div v-if="editLocationForm.errors.name" class="text-sm text-red-600">
+                                                                {{ editLocationForm.errors.name }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="space-y-2">
+                                                            <Label for="edit-description">Description</Label>
+                                                            <Textarea
+                                                                id="edit-description"
+                                                                v-model="editLocationForm.description"
+                                                                rows="3"
+                                                            />
+                                                            <div v-if="editLocationForm.errors.description" class="text-sm text-red-600">
+                                                                {{ editLocationForm.errors.description }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="space-y-2">
+                                                            <Label for="edit-photo">Photo</Label>
+                                                            <FileUpload
+                                                                v-model="editLocationForm.photo"
+                                                                accept="image/*"
+                                                                :max-size="2 * 1024 * 1024"
+                                                                :current-file="emplacement.photo_path"
+                                                            />
+                                                            <div v-if="editLocationForm.errors.photo" class="text-sm text-red-600">
+                                                                {{ editLocationForm.errors.photo }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="flex justify-end gap-4">
+                                                            <DialogTrigger asChild>
+                                                                <Button type="button" variant="outline">
+                                                                    Annuler
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <Button
+                                                                type="submit"
+                                                                :disabled="editLocationForm.processing"
+                                                            >
+                                                                Mettre à jour
+                                                            </Button>
+                                                        </div>
+                                                    </form>
+                                                </DialogContent>
+                                            </Dialog>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="handleDeleteLocation(emplacement.id)"
+                                            >
+                                                <Trash2 class="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </div>
+                                    </div>
                                     <p class="mt-1 text-sm text-gray-500">
                                         {{ emplacement.description }}
                                     </p>
                                     <div class="mt-4">
                                         <Button variant="outline" size="sm" as-child>
-                                            <Link :href="route('emplacements.show', emplacement.id)">
+                                            <Link :href="route('etablissements.locations.show', [props.etablissement.id, emplacement.id])">
                                                 Voir l'emplacement
                                             </Link>
                                         </Button>
@@ -152,4 +337,4 @@ const breadcrumbs: BreadcrumbItemType[] = [
             </div>
         </div>
     </AppSidebarLayout>
-</template> 
+</template>

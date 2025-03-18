@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import FileUpload from '@/components/ui/file-upload.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 
 interface Etablissement {
     id: number;
@@ -47,11 +48,6 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/etablissements/${props.etablissement.id}/edit`,
     },
 ];
-
-const handlePlanChange = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-    form.plan = input.files?.[0] || null;
-};
 
 const handleSubmit = () => {
     form.put(route('etablissements.update', props.etablissement.id));
@@ -150,17 +146,14 @@ const handleSubmit = () => {
 
                                 <div class="space-y-2">
                                     <Label for="plan">Plan (optionnel)</Label>
-                                    <Input
-                                        id="plan"
-                                        type="file"
+                                    <FileUpload
+                                        v-model="form.plan"
                                         accept="image/*"
-                                        @change="handlePlanChange"
+                                        :max-size="5 * 1024 * 1024"
+                                        :current-file="etablissement.plan_path"
                                     />
                                     <div v-if="form.errors.plan" class="text-sm text-red-600">
                                         {{ form.errors.plan }}
-                                    </div>
-                                    <div v-if="etablissement.plan_path" class="text-sm text-gray-500">
-                                        Plan actuel : {{ etablissement.plan_path }}
                                     </div>
                                 </div>
                             </div>
@@ -168,7 +161,7 @@ const handleSubmit = () => {
                             <div class="flex justify-end gap-4">
                                 <Button
                                     variant="outline"
-                                    @click="route('etablissements.index')"
+                                    @click="router.visit(route('etablissements.index'))"
                                 >
                                     Annuler
                                 </Button>
@@ -185,4 +178,4 @@ const handleSubmit = () => {
             </div>
         </div>
     </AppSidebarLayout>
-</template> 
+</template>
