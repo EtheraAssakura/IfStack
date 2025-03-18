@@ -22,8 +22,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Photo et informations de base -->
               <div>
-                <div v-if="location.photo_url" class="mb-4">
-                  <img :src="location.photo_url" :alt="location.name" class="w-full max-w-md rounded-lg shadow-md" />
+                <div v-if="location.qr_code_url" class="mb-4">
+                  <h3 class="text-lg font-medium text-gray-900 mb-2">QR Code</h3>
+                  <div class="bg-white p-4 rounded-lg shadow-md inline-block">
+                    <img :src="location.qr_code_url" :alt="`QR Code de ${location.name}`" class="w-64 h-64" />
+                  </div>
+                  <div class="mt-4">
+                    <Button variant="outline" size="sm" as="a" :href="location.qr_code_url" download>
+                      Télécharger le QR Code
+                    </Button>
+                  </div>
                 </div>
                 <div v-else class="mb-4 w-full max-w-md h-48 bg-gray-100 rounded-lg flex items-center justify-center">
                   <MapPinIcon class="h-16 w-16 text-gray-400" />
@@ -75,7 +83,7 @@
                           {{ item.supply.category }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {{ item.quantity }}
+                          {{ item.estimated_quantity }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {{ item.last_update }}
@@ -118,7 +126,7 @@ const props = defineProps<{
         reference: string
         category: string
       }
-      quantity: number
+      estimated_quantity: number
       last_update: string
     }>
   }

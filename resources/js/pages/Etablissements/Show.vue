@@ -80,7 +80,7 @@ const handleCreateLocation = () => {
 };
 
 const handleEditLocation = (locationId: number) => {
-    editLocationForm.post(route('etablissements.locations.update', [props.etablissement.id, locationId]));
+    editLocationForm.put(route('etablissements.locations.update', [props.etablissement.id, locationId]));
 };
 
 const handleDeleteLocation = (locationId: number) => {
@@ -166,7 +166,7 @@ const initEditForm = (emplacement: Emplacement) => {
                                             Nouvel emplacement
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent>
+                                    <DialogContent class="sm:max-w-[425px]" description="Formulaire de création d'un nouvel emplacement">
                                         <DialogHeader>
                                             <DialogTitle>Nouvel emplacement</DialogTitle>
                                         </DialogHeader>
@@ -239,7 +239,7 @@ const initEditForm = (emplacement: Emplacement) => {
                                                         <Pencil class="h-4 w-4" />
                                                     </Button>
                                                 </DialogTrigger>
-                                                <DialogContent>
+                                                <DialogContent class="sm:max-w-[425px]" description="Formulaire de modification d'un emplacement">
                                                     <DialogHeader>
                                                         <DialogTitle>Modifier l'emplacement</DialogTitle>
                                                     </DialogHeader>
