@@ -52,7 +52,7 @@ class SupplySeeder extends Seeder
         $classeurId = DB::table('supplies')->where('reference', 'CLA-A4-80')->value('id');
 
         // Créer les liens avec les fournisseurs
-        DB::table('supply_supplier')->insert([
+        DB::table('supplier_supply')->insert([
             // Liens Calipage
             [
                 'supply_id' => $papierA4Id,

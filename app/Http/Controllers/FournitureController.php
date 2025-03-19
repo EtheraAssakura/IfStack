@@ -19,12 +19,11 @@ class FournitureController extends Controller
     $fournitures = Fourniture::with(['categorie', 'fournisseurs'])->get();
 
     $mappedFournitures = $fournitures->map(function ($fourniture) {
-      $mapped = [
+      return [
         'id' => $fourniture->id,
         'name' => $fourniture->name,
         'reference' => $fourniture->reference,
         'packaging' => $fourniture->packaging,
-        'catalog_url' => $fourniture->catalog_url,
         'category' => [
           'id' => $fourniture->categorie->id,
           'name' => $fourniture->categorie->name,
@@ -40,10 +39,8 @@ class FournitureController extends Controller
               'catalog_url' => $fournisseur->pivot->catalog_url,
             ],
           ];
-        }),
+        })->values()->all(),
       ];
-
-      return $mapped;
     });
 
     return Inertia::render('Fournitures/Index', [

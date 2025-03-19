@@ -26,7 +26,7 @@ interface Props {
 const props = defineProps<Props>();
 const dropZone = ref<HTMLDivElement>();
 const isDragging = ref(false);
-const preview = ref<string | null>(props.etablissement.plan_path);
+const preview = ref<string | null>(props.etablissement.plan_path ? `/storage/${props.etablissement.plan_path}` : null);
 
 const form = useForm({
     name: props.etablissement.name,

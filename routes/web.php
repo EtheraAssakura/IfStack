@@ -13,6 +13,7 @@ use App\Http\Controllers\RapportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -113,6 +114,16 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('categories', CategoryController::class);
+});
+
+// Order routes
+Route::middleware(['auth'])->group(function () {
+    Route::resource('orders', OrderController::class);
+    Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+    Route::get('orders/{order}/export', [OrderController::class, 'exportExcel'])->name('orders.export');
+    Route::post('orders/{order}/validate', [OrderController::class, 'validate'])->name('orders.validate');
+    Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::get('orders/suggest', [OrderController::class, 'suggestOrders'])->name('orders.suggest');
 });
 
 require __DIR__ . '/settings.php';

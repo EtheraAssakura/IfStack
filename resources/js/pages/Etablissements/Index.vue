@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 
 interface Etablissement {
     id: number;
@@ -109,18 +110,25 @@ const deleteEtablissement = (id: number) => {
                                                 >
                                                     Détails
                                                 </Link>
-                                                <Link
-                                                    :href="route('etablissements.edit', etablissement.id)"
-                                                    class="inline-flex items-center gap-2 text-gray-500 transition-colors hover:text-primary"
-                                                >
-                                                    <Pencil class="h-4 w-4" />
-                                                </Link>
-                                                <button
-                                                    @click="deleteEtablissement(etablissement.id)"
-                                                    class="inline-flex items-center gap-2 text-red-500 transition-colors hover:text-red-700"
-                                                >
-                                                    <Trash2 class="h-4 w-4" />
-                                                </button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger as-child>
+                                                        <Button variant="ghost" size="icon" class="h-8 w-8">
+                                                            <MoreVertical class="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem as-child>
+                                                            <Link :href="route('etablissements.edit', etablissement.id)" class="flex items-center gap-2">
+                                                                <Pencil class="h-4 w-4" />
+                                                                Modifier
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem @click="deleteEtablissement(etablissement.id)" class="text-red-500 focus:text-red-500">
+                                                            <Trash2 class="h-4 w-4" />
+                                                            Supprimer
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </td>
                                     </tr>

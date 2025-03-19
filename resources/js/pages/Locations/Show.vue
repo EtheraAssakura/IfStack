@@ -19,9 +19,9 @@
         <!-- Informations de l'emplacement -->
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
           <div class="p-6 bg-white border-b border-gray-200">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
               <!-- Photo et informations de base -->
-              <div>
+              <div class="md:col-span-2">
                 <div v-if="location.qr_code_url" class="mb-4">
                   <h3 class="text-lg font-medium text-gray-900 mb-2">QR Code</h3>
                   <div class="bg-white p-4 rounded-lg shadow-md inline-block">
@@ -50,7 +50,7 @@
               </div>
 
               <!-- Liste des stocks -->
-              <div>
+              <div class="md:col-span-3">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Stocks</h3>
                 <div class="overflow-x-auto">
                   <table class="min-w-full divide-y divide-gray-200">

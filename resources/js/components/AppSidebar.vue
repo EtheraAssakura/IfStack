@@ -33,7 +33,7 @@ const mainNavItems: NavItem[] = [
         icon: Package,
     },
     {
-        title: 'Sites',
+        title: 'Etablissements',
         href: route('etablissements.index'),
         icon: Building2,
     },
@@ -44,7 +44,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Commandes',
-        href: route('commandes.index'),
+        href: route('orders.index'),
         icon: ClipboardList,
     },
     {

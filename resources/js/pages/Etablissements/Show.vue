@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Eye, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface Emplacement {
     id: number;
@@ -46,6 +48,9 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const editDialog = ref<InstanceType<typeof Dialog> | null>(null);
+const editingLocation = ref<Emplacement | null>(null);
+
 const breadcrumbs: BreadcrumbItemType[] = [
     {
         title: 'Établissements',
@@ -77,7 +82,12 @@ const handleCreateLocation = () => {
 };
 
 const handleEditLocation = (locationId: number) => {
-    editLocationForm.put(route('etablissements.locations.update', [props.etablissement.id, locationId]));
+    editLocationForm.put(route('etablissements.locations.update', [props.etablissement.id, locationId]), {
+        onSuccess: () => {
+            editDialog.value?.close();
+            editingLocation.value = null;
+        },
+    });
 };
 
 const handleDeleteLocation = (locationId: number) => {
@@ -87,6 +97,7 @@ const handleDeleteLocation = (locationId: number) => {
 };
 
 const initEditForm = (emplacement: Emplacement) => {
+    editingLocation.value = emplacement;
     editLocationForm.name = emplacement.name;
     editLocationForm.description = emplacement.description;
 };
@@ -214,77 +225,87 @@ const initEditForm = (emplacement: Emplacement) => {
                                 Aucun emplacement disponible
                             </div>
                             <div v-else class="space-y-4">
+                                <Dialog ref="editDialog">
+                                    <DialogContent class="sm:max-w-[425px]">
+                                        <DialogHeader>
+                                            <DialogTitle>Modifier l'emplacement</DialogTitle>
+                                        </DialogHeader>
+                                        <form v-if="editingLocation" @submit.prevent="handleEditLocation(editingLocation.id)" class="space-y-4">
+                                            <div class="space-y-2">
+                                                <Label for="edit-name">Nom</Label>
+                                                <Input
+                                                    id="edit-name"
+                                                    v-model="editLocationForm.name"
+                                                    type="text"
+                                                    required
+                                                />
+                                                <div v-if="editLocationForm.errors.name" class="text-sm text-red-600">
+                                                    {{ editLocationForm.errors.name }}
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="edit-description">Description</Label>
+                                                <Textarea
+                                                    id="edit-description"
+                                                    v-model="editLocationForm.description"
+                                                    rows="3"
+                                                />
+                                                <div v-if="editLocationForm.errors.description" class="text-sm text-red-600">
+                                                    {{ editLocationForm.errors.description }}
+                                                </div>
+                                            </div>
+
+                                            <div class="flex justify-end gap-4">
+                                                <DialogTrigger asChild>
+                                                    <Button type="button" variant="outline">
+                                                        Annuler
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <Button
+                                                    type="submit"
+                                                    :disabled="editLocationForm.processing"
+                                                >
+                                                    Mettre à jour
+                                                </Button>
+                                            </div>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+
                                 <div v-for="emplacement in etablissement.emplacements" :key="emplacement.id" class="p-4 bg-white rounded-lg shadow-sm">
                                     <div class="flex items-center justify-between">
                                         <h3 class="text-base font-medium text-gray-900">{{ emplacement.name }}</h3>
                                         <div class="flex items-center gap-2">
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="sm" @click="initEditForm(emplacement)">
-                                                        <Pencil class="h-4 w-4" />
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger as-child>
+                                                    <Button variant="ghost" size="icon" class="h-8 w-8">
+                                                        <MoreVertical class="h-4 w-4" />
                                                     </Button>
-                                                </DialogTrigger>
-                                                <DialogContent class="sm:max-w-[425px]" description="Formulaire de modification d'un emplacement">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Modifier l'emplacement</DialogTitle>
-                                                    </DialogHeader>
-                                                    <form @submit.prevent="handleEditLocation(emplacement.id)" class="space-y-4">
-                                                        <div class="space-y-2">
-                                                            <Label for="edit-name">Nom</Label>
-                                                            <Input
-                                                                id="edit-name"
-                                                                v-model="editLocationForm.name"
-                                                                type="text"
-                                                                required
-                                                            />
-                                                            <div v-if="editLocationForm.errors.name" class="text-sm text-red-600">
-                                                                {{ editLocationForm.errors.name }}
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="space-y-2">
-                                                            <Label for="edit-description">Description</Label>
-                                                            <Textarea
-                                                                id="edit-description"
-                                                                v-model="editLocationForm.description"
-                                                                rows="3"
-                                                            />
-                                                            <div v-if="editLocationForm.errors.description" class="text-sm text-red-600">
-                                                                {{ editLocationForm.errors.description }}
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="flex justify-end gap-4">
-                                                            <DialogTrigger asChild>
-                                                                <Button type="button" variant="outline">
-                                                                    Annuler
-                                                                </Button>
-                                                            </DialogTrigger>
-                                                            <Button
-                                                                type="submit"
-                                                                :disabled="editLocationForm.processing"
-                                                            >
-                                                                Mettre à jour
-                                                            </Button>
-                                                        </div>
-                                                    </form>
-                                                </DialogContent>
-                                            </Dialog>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="handleDeleteLocation(emplacement.id)"
-                                            >
-                                                <Trash2 class="h-4 w-4 text-red-500" />
-                                            </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem as-child>
+                                                        <button 
+                                                            class="flex w-full items-center gap-2"
+                                                            @click="initEditForm(emplacement)"
+                                                        >
+                                                            <Pencil class="h-4 w-4" />
+                                                            Modifier
+                                                        </button>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem @click="handleDeleteLocation(emplacement.id)" class="text-red-500 focus:text-red-500">
+                                                        <Trash2 class="h-4 w-4" />
+                                                        Supprimer
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
-                                    <p class="mt-1 text-sm text-gray-500">
-                                        {{ emplacement.description }}
-                                    </p>
+                                    <p v-if="emplacement.description" class="mt-1 text-sm text-gray-500">{{ emplacement.description }}</p>
                                     <div class="mt-4">
                                         <Button variant="outline" size="sm" as-child>
-                                            <Link :href="route('etablissements.locations.show', [props.etablissement.id, emplacement.id])">
+                                            <Link :href="route('etablissements.locations.show', [props.etablissement.id, emplacement.id])" class="flex items-center gap-2">
+                                                <Eye class="h-4 w-4" />
                                                 Voir l'emplacement
                                             </Link>
                                         </Button>
@@ -310,3 +331,4 @@ const initEditForm = (emplacement: Emplacement) => {
         </div>
     </AppSidebarLayout>
 </template>
+

@@ -26,7 +26,7 @@ class Fourniture extends Model
 
   public function fournisseurs(): BelongsToMany
   {
-    return $this->belongsToMany(Fournisseur::class, 'supply_supplier', 'supply_id', 'supplier_id')
+    return $this->belongsToMany(Fournisseur::class, 'supplier_supply', 'supply_id', 'supplier_id')
       ->withPivot(['supplier_reference', 'unit_price', 'catalog_url'])
       ->withTimestamps();
   }

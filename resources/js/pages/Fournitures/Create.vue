@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { useDropZone } from '@vueuse/core';
+
 import { ref } from 'vue';
 
 interface Props {
@@ -360,7 +361,7 @@ const submit = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  :href="route('fournitures.index')"
+                  @click="router.visit(route('fournitures.index'))"
                 >
                   Annuler
                 </Button>

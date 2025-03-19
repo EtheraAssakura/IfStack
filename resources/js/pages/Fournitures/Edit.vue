@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -25,10 +32,11 @@ interface Props {
     fournisseurs: Array<{
       id: number;
       name: string;
+      catalog_url: string | null;
       pivot: {
         supplier_reference: string;
         unit_price: number;
-        catalog_url?: string | null;
+        catalog_url: string | null;
       };
     }>;
   };
@@ -67,7 +75,13 @@ const form = useForm({
     prix: f.pivot.unit_price,
     catalog_url: f.pivot.catalog_url || '',
   })),
+  new_category_name: '',
 });
+
+const showNewCategoryForm = ref(false);
+const showSuccessMessage = ref(false);
+const showCategoryModal = ref(false);
+const successMessage = ref('');
 
 const { isOverDropZone } = useDropZone(dropZone, {
   onDrop: (files: File[] | null) => {
@@ -146,6 +160,50 @@ const addFournisseur = () => {
 
 const removeFournisseur = (index: number) => {
   form.fournisseurs.splice(index, 1);
+};
+
+const deleteCategory = (categoryId: number) => {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+
+  const deleteForm = useForm({});
+  deleteForm.delete(route('categories.destroy', categoryId), {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = 'La catégorie a été supprimée avec succès !';
+      showSuccessMessage.value = true;
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+      }, 3000);
+    },
+    onError: (errors) => {
+      console.error('Erreurs de suppression:', errors);
+    }
+  });
+};
+
+const createCategory = () => {
+  if (!form.new_category_name) return;
+  
+  const categoryForm = useForm({
+    name: form.new_category_name
+  });
+
+  categoryForm.post(route('categories.store'), {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      form.new_category_name = '';
+      successMessage.value = 'La catégorie a été ajoutée avec succès !';
+      showSuccessMessage.value = true;
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+      }, 3000);
+    },
+    onError: (errors) => {
+      console.error('Erreurs de validation:', errors);
+    }
+  });
 };
 
 const submit = () => {
@@ -235,22 +293,76 @@ const submit = () => {
 
                 <div>
                   <Label for="category">Catégorie</Label>
-                  <Select
-                    id="category"
-                    v-model="form.category_id"
-                    class="mt-1 block w-full"
-                    required
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    <option
-                      v-for="category in categories"
-                      :key="category.id"
-                      :value="category.id"
-                      :selected="category.id === form.category_id"
+                  <div class="flex gap-2">
+                    <Select
+                      id="category"
+                      v-model="form.category_id"
+                      class="mt-1 block w-full"
+                      required
                     >
-                      {{ category.name }}
-                    </option>
-                  </Select>
+                      <option value="">Sélectionner une catégorie</option>
+                      <option
+                        v-for="category in categories"
+                        :key="category.id"
+                        :value="category.id"
+                        :selected="category.id === form.category_id"
+                      >
+                        {{ category.name }}
+                      </option>
+                    </Select>
+                    <Dialog v-model:open="showCategoryModal">
+                      <DialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          class="mt-1"
+                        >
+                          Gérer les catégories
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent class="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Gestion des catégories</DialogTitle>
+                        </DialogHeader>
+                        <div class="space-y-4">
+                          <div v-if="showSuccessMessage" class="p-3 bg-green-100 text-green-700 rounded-md">
+                            {{ successMessage }}
+                          </div>
+                          <div class="flex gap-2">
+                            <Input
+                              v-model="form.new_category_name"
+                              type="text"
+                              placeholder="Nom de la nouvelle catégorie"
+                              class="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              @click="createCategory"
+                              :disabled="!form.new_category_name"
+                            >
+                              Ajouter
+                            </Button>
+                          </div>
+                          <div class="space-y-2">
+                            <div v-for="category in categories" :key="category.id" class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <span>{{ category.name }}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                class="text-red-600 hover:text-red-700"
+                                @click="deleteCategory(category.id)"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
 
                 <div>

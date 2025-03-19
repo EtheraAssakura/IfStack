@@ -9,42 +9,46 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Ajouter la colonne catalog_url à la table supply_supplier
-        Schema::table('supply_supplier', function (Blueprint $table) {
-            $table->string('catalog_url')->nullable()->after('unit_price');
-        });
+        // Vérifier si la colonne catalog_url n'existe pas déjà dans supplier_supply
+        if (!Schema::hasColumn('supplier_supply', 'catalog_url')) {
+            Schema::table('supplier_supply', function (Blueprint $table) {
+                $table->string('catalog_url')->nullable()->after('unit_price');
+            });
+        }
 
-        // Copier les données de catalog_url de supplies vers supply_supplier
+        // Copier les données de catalog_url de supplies vers supplier_supply
         DB::statement('
-            UPDATE supply_supplier ss
+            UPDATE supplier_supply ss
             JOIN supplies s ON ss.supply_id = s.id
             SET ss.catalog_url = s.catalog_url
+            WHERE s.catalog_url IS NOT NULL
         ');
 
-        // Supprimer la colonne catalog_url de la table supplies
-        Schema::table('supplies', function (Blueprint $table) {
-            $table->dropColumn('catalog_url');
-        });
+        // Vérifier si la colonne catalog_url existe dans supplies avant de la supprimer
+        if (Schema::hasColumn('supplies', 'catalog_url')) {
+            Schema::table('supplies', function (Blueprint $table) {
+                $table->dropColumn('catalog_url');
+            });
+        }
     }
 
     public function down(): void
     {
-        // Ajouter la colonne catalog_url à la table supplies
-        Schema::table('supplies', function (Blueprint $table) {
-            $table->string('catalog_url')->nullable();
-        });
+        // Vérifier si la colonne catalog_url n'existe pas déjà dans supplies
+        if (!Schema::hasColumn('supplies', 'catalog_url')) {
+            Schema::table('supplies', function (Blueprint $table) {
+                $table->string('catalog_url')->nullable();
+            });
+        }
 
-        // Copier les données de catalog_url de supply_supplier vers supplies
+        // Copier les données de catalog_url de supplier_supply vers supplies
         DB::statement('
             UPDATE supplies s
-            JOIN supply_supplier ss ON s.id = ss.supply_id
+            JOIN supplier_supply ss ON s.id = ss.supply_id
             SET s.catalog_url = ss.catalog_url
             WHERE ss.catalog_url IS NOT NULL
         ');
 
-        // Supprimer la colonne catalog_url de la table supply_supplier
-        Schema::table('supply_supplier', function (Blueprint $table) {
-            $table->dropColumn('catalog_url');
-        });
+        // Ne pas supprimer la colonne catalog_url de supplier_supply car elle fait partie de la structure initiale
     }
 };
