@@ -39,6 +39,12 @@ class UserSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'Admin Ethera',
+                'email' => 'etheraassakura@gmail.com',
+                'password' => Hash::make('password'),
+                'site_id' => DB::table('sites')->where('name', 'ISFAC Poitiers')->value('id'),
+            ],
         ];
 
         foreach ($users as $userData) {

@@ -54,10 +54,14 @@ class IsfacSeeder extends Seeder
       [
         'nom' => 'Calipage',
         'url_catalogue' => 'https://secof.calipage.fr/',
+        'email' => 'contact@calipage.fr',
+        'telephone' => '05 49 37 37 37',
       ],
       [
         'nom' => 'ProHD',
         'url_catalogue' => 'https://www.prohd.fr/',
+        'email' => 'contact@prohd.fr',
+        'telephone' => '05 49 37 37 37',
       ],
     ]);
 
