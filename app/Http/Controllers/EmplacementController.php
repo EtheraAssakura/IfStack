@@ -5,18 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Emplacement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class EmplacementController extends Controller
 {
   public function index()
   {
     $emplacements = Emplacement::with('etablissement')->get();
-    return view('emplacements.index', compact('emplacements'));
+    return Inertia::render('Emplacements/Index', [
+      'emplacements' => $emplacements
+    ]);
   }
 
   public function create()
   {
-    return view('emplacements.create');
+    return Inertia::render('Emplacements/Create');
   }
 
   public function store(Request $request)
@@ -41,12 +44,16 @@ class EmplacementController extends Controller
 
   public function show(Emplacement $emplacement)
   {
-    return view('locations.show', compact('emplacement'));
+    return Inertia::render('Emplacements/Show', [
+      'emplacement' => $emplacement->load('etablissement')
+    ]);
   }
 
   public function edit(Emplacement $emplacement)
   {
-    return view('emplacements.edit', compact('emplacement'));
+    return Inertia::render('Emplacements/Edit', [
+      'emplacement' => $emplacement
+    ]);
   }
 
   public function update(Request $request, Emplacement $emplacement)
@@ -54,10 +61,19 @@ class EmplacementController extends Controller
     $validated = $request->validate([
       'nom' => 'required|string|max:255',
       'description' => 'nullable|string',
-      'etablissement_id' => 'required|exists:etablissements,id'
+      'etablissement_id' => 'required|exists:etablissements,id',
+      'photo' => 'nullable|image|max:2048'
     ]);
 
     $emplacement->update($validated);
+
+    if ($request->hasFile('photo')) {
+      if ($emplacement->photo_path) {
+        Storage::disk('public')->delete($emplacement->photo_path);
+      }
+      $path = $request->file('photo')->store('emplacements', 'public');
+      $emplacement->update(['photo_path' => $path]);
+    }
 
     return redirect()->route('emplacements.index')
       ->with('success', 'Emplacement mis à jour avec succès.');
@@ -88,7 +104,7 @@ class EmplacementController extends Controller
     $path = $request->file('photo')->store('emplacements', 'public');
     $emplacement->update(['photo_path' => $path]);
 
-    return redirect()->route('locations.show', $emplacement)
+    return redirect()->route('emplacements.show', $emplacement)
       ->with('success', 'Photo mise à jour avec succès.');
   }
 }

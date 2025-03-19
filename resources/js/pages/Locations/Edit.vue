@@ -4,41 +4,35 @@
       <title>Modifier {{ location.name }} - ISFAC</title>
     </Head>
 
-    <div class="py-12">
-      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-          <div class="p-6">
-            <h1 class="text-2xl font-semibold mb-6">Modifier {{ location.name }}</h1>
-
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div class="px-4 py-6 sm:px-0">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+          <div class="p-6 bg-white border-b border-gray-200">
             <form @submit.prevent="handleSubmit" class="space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
                   <Label for="name">Nom</Label>
                   <Input
                     id="name"
                     v-model="form.name"
                     type="text"
                     required
+                    class="mt-1 block w-full"
                   />
                   <div v-if="form.errors.name" class="text-sm text-red-600">
                     {{ form.errors.name }}
                   </div>
                 </div>
 
-                <div class="space-y-2">
+                <div>
                   <Label for="etablissement_id">Établissement</Label>
                   <select
                     id="etablissement_id"
                     v-model="form.etablissement_id"
-                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                     required
                   >
-                    <option value="">Sélectionnez un établissement</option>
-                    <option
-                      v-for="etablissement in etablissements"
-                      :key="etablissement.id"
-                      :value="etablissement.id"
-                    >
+                    <option v-for="etablissement in etablissements" :key="etablissement.id" :value="etablissement.id">
                       {{ etablissement.name }}
                     </option>
                   </select>
@@ -53,6 +47,8 @@
                     id="description"
                     v-model="form.description"
                     rows="3"
+                    required
+                    class="mt-1 block w-full"
                   />
                   <div v-if="form.errors.description" class="text-sm text-red-600">
                     {{ form.errors.description }}
@@ -61,31 +57,46 @@
 
                 <div class="space-y-2 md:col-span-2">
                   <Label for="photo">Photo</Label>
-                  <FileUpload
-                    v-model="form.photo"
-                    accept="image/*"
-                    :max-size="2 * 1024 * 1024"
-                    :current-file="location.photo_path"
-                  />
+                  <div ref="dropZone" class="flex items-center justify-center h-32 border-2 border-dashed rounded-lg" :class="{ 'border-primary-500': isDragging }">
+                    <div v-if="preview" class="relative">
+                      <img :src="preview" alt="Preview" class="h-24 w-24 object-cover rounded-lg">
+                      <button type="button" @click="removeImage" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div v-else class="text-center">
+                      <input type="file" accept="image/*" class="hidden" @change="handleFileInput">
+                      <button type="button" class="text-gray-500 hover:text-gray-700" @click="$el.querySelector('input[type=file]').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="mt-2 block text-sm">Cliquez pour sélectionner une image</span>
+                        <span class="text-xs text-gray-400">ou glissez-déposez ici</span>
+                      </button>
+                    </div>
+                  </div>
                   <div v-if="form.errors.photo" class="text-sm text-red-600">
                     {{ form.errors.photo }}
                   </div>
                 </div>
               </div>
 
-              <div class="flex justify-end gap-4">
+              <div class="flex justify-end space-x-3">
                 <Button
                   type="button"
-                  variant="outline"
-                  @click="router.visit(route('locations.index'))"
+                  variant="secondary"
+                  @click="router.visit(route('etablissements.locations.show', [props.location.etablissement.id, props.location.id]))"
                 >
                   Annuler
                 </Button>
                 <Button
                   type="submit"
+                  variant="default"
                   :disabled="form.processing"
                 >
-                  Mettre à jour
+                  Enregistrer
                 </Button>
               </div>
             </form>
@@ -98,13 +109,14 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import FileUpload from '@/components/ui/file-upload.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { useDropZone } from '@vueuse/core';
+import { ref } from 'vue';
 
 interface Etablissement {
   id: number;
@@ -117,6 +129,7 @@ interface Location {
   description: string;
   etablissement_id: number;
   photo_path: string | null;
+  etablissement: Etablissement;
 }
 
 interface Props {
@@ -125,6 +138,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const dropZone = ref<HTMLDivElement>();
+const isDragging = ref(false);
+const preview = ref<string | null>(props.location.photo_path);
 
 const form = useForm({
   name: props.location.name,
@@ -134,22 +150,99 @@ const form = useForm({
   _method: 'PUT'
 });
 
+const { isOverDropZone } = useDropZone(dropZone, {
+  onDrop: (files: File[] | null) => {
+    if (!files) return;
+    const file = files[0];
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('L\'image ne doit pas dépasser 2MB');
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        alert('Le format de l\'image doit être JPEG, PNG ou GIF');
+        return;
+      }
+      form.photo = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.value = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  },
+  onEnter: () => {
+    isDragging.value = true;
+  },
+  onLeave: () => {
+    isDragging.value = false;
+  },
+});
+
+const handleFileInput = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    if (file.size > 2 * 1024 * 1024) {
+      alert('L\'image ne doit pas dépasser 2MB');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      alert('Le format de l\'image doit être JPEG, PNG ou GIF');
+      return;
+    }
+    form.photo = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const removeImage = () => {
+  form.photo = null;
+  preview.value = null;
+};
+
 const breadcrumbs: BreadcrumbItemType[] = [
   {
-    title: 'Emplacements',
-    href: '/locations',
+    title: 'Établissements',
+    href: route('etablissements.index'),
+  },
+  {
+    title: props.location.etablissement.name,
+    href: route('etablissements.show', props.location.etablissement.id),
   },
   {
     title: props.location.name,
-    href: `/locations/${props.location.id}`,
+    href: route('etablissements.locations.show', {
+      etablissement: props.location.etablissement.id,
+      location: props.location.id
+    }),
   },
   {
     title: 'Modifier',
-    href: `/locations/${props.location.id}/edit`,
+    href: route('etablissements.locations.edit', {
+      etablissement: props.location.etablissement.id,
+      location: props.location.id
+    }),
   },
 ];
 
 const handleSubmit = () => {
-  form.post(route('locations.update', props.location.id));
+  form.transform(data => ({
+    ...data
+  })).post(route('etablissements.locations.update', [props.location.etablissement.id, props.location.id]), {
+    preserveScroll: true,
+    onSuccess: () => {
+      form.reset();
+      preview.value = null;
+      router.visit(route('etablissements.locations.show', [props.location.etablissement.id, props.location.id]));
+    },
+    onError: (errors: Record<string, string>) => {
+      console.error('Erreurs de validation:', errors);
+    }
+  });
 };
 </script>

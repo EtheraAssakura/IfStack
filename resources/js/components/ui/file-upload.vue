@@ -13,6 +13,7 @@ interface Props {
   maxSize?: number;
   class?: string;
   currentFile?: string | null;
+  description?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -104,7 +105,7 @@ watch(() => props.modelValue, (newValue) => {
         </div>
 
         <p class="text-xs leading-5 text-gray-600 mt-1">
-          PNG, JPG, GIF jusqu'à {{ props.maxSize / 1024 / 1024 }}MB
+          {{ props.description || `PNG, JPG, GIF jusqu'à ${props.maxSize / 1024 / 1024}MB` }}
         </p>
       </div>
 

@@ -63,37 +63,78 @@ class FournitureController extends Controller
 
   public function store(Request $request)
   {
-    $validated = $request->validate([
-      'name' => 'required|string|max:255',
-      'reference' => ['required', 'string', Rule::unique('supplies')],
-      'packaging' => 'required|string|max:255',
-      'catalog_url' => 'nullable|url',
-      'category_id' => 'required|exists:categories,id',
-      'image' => 'nullable|image|max:2048',
-      'fournisseurs' => 'required|array',
-      'fournisseurs.*.id' => 'required|exists:suppliers,id',
-      'fournisseurs.*.reference' => 'required|string',
-      'fournisseurs.*.prix' => 'required|numeric|min:0',
-      'fournisseurs.*.catalog_url' => 'nullable|url',
+    Log::info('Début de la création de la fourniture', [
+      'request_data' => $request->all(),
+      'has_image' => $request->hasFile('image'),
+      'files' => $request->allFiles(),
+      'headers' => $request->headers->all(),
+      'content_type' => $request->header('Content-Type'),
+      'method' => $request->method()
     ]);
 
-    if ($request->hasFile('image')) {
-      $path = $request->file('image')->store('fournitures', 'public');
-      $validated['image_url'] = Storage::url($path);
-    }
+    try {
+      // Convertir la chaîne JSON des fournisseurs en tableau
+      if ($request->has('fournisseurs')) {
+        $fournisseurs = json_decode($request->fournisseurs, true);
+        Log::info('Fournisseurs décodés:', ['fournisseurs' => $fournisseurs]);
+        $request->merge(['fournisseurs' => $fournisseurs]);
+      }
 
-    $fourniture = Fourniture::create($validated);
-
-    foreach ($request->fournisseurs as $fournisseur) {
-      $fourniture->fournisseurs()->attach($fournisseur['id'], [
-        'supplier_reference' => $fournisseur['reference'],
-        'unit_price' => $fournisseur['prix'],
-        'catalog_url' => $fournisseur['catalog_url'] ?? null,
+      $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'reference' => ['required', 'string', Rule::unique('supplies')],
+        'packaging' => 'required|string|max:255',
+        'catalog_url' => 'nullable|url',
+        'category_id' => 'required|exists:categories,id',
+        'image' => 'nullable|image|max:2048',
+        'fournisseurs' => 'required|array',
+        'fournisseurs.*.id' => 'required|exists:suppliers,id',
+        'fournisseurs.*.reference' => 'required|string',
+        'fournisseurs.*.prix' => 'required|numeric|min:0',
+        'fournisseurs.*.catalog_url' => 'nullable|url',
       ]);
-    }
 
-    return redirect()->route('fournitures.index')
-      ->with('success', 'Fourniture créée avec succès.');
+      Log::info('Validation réussie', ['validated_data' => $validated]);
+
+      if ($request->hasFile('image')) {
+        Log::info('Traitement de l\'image', [
+          'file' => $request->file('image'),
+          'original_name' => $request->file('image')->getClientOriginalName(),
+          'mime_type' => $request->file('image')->getMimeType(),
+          'size' => $request->file('image')->getSize()
+        ]);
+
+        $path = $request->file('image')->store('fournitures', 'public');
+        $validated['image_url'] = Storage::url($path);
+        Log::info('Image stockée', ['path' => $path, 'url' => $validated['image_url']]);
+      }
+
+      $fourniture = Fourniture::create($validated);
+
+      $fourniture->fournisseurs()->attach(
+        collect($request->fournisseurs)->mapWithKeys(function ($item) {
+          return [$item['id'] => [
+            'supplier_reference' => $item['reference'],
+            'unit_price' => $item['prix'],
+            'catalog_url' => $item['catalog_url'] ?? null,
+          ]];
+        })
+      );
+
+      Log::info('Création réussie');
+
+      return redirect()->route('fournitures.index')
+        ->with('success', 'Fourniture créée avec succès.');
+    } catch (\Exception $e) {
+      Log::error('Erreur lors de la création', [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+        'request_data' => $request->all(),
+        'validation_errors' => $e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : null
+      ]);
+
+      return back()->withErrors($e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : ['error' => 'Une erreur est survenue lors de la création.']);
+    }
   }
 
   public function show(Fourniture $fourniture): Response
@@ -194,42 +235,85 @@ class FournitureController extends Controller
 
   public function update(Request $request, Fourniture $fourniture)
   {
-    $validated = $request->validate([
-      'name' => 'required|string|max:255',
-      'reference' => ['required', 'string', Rule::unique('supplies')->ignore($fourniture)],
-      'packaging' => 'required|string|max:255',
-      'catalog_url' => 'nullable|url',
-      'category_id' => 'required|exists:categories,id',
-      'image' => 'nullable|image|max:2048',
-      'fournisseurs' => 'required|array',
-      'fournisseurs.*.id' => 'required|exists:suppliers,id',
-      'fournisseurs.*.reference' => 'required|string',
-      'fournisseurs.*.prix' => 'required|numeric|min:0',
-      'fournisseurs.*.catalog_url' => 'nullable|url',
+    Log::info('Début de la mise à jour de la fourniture', [
+      'fourniture_id' => $fourniture->id,
+      'request_data' => $request->all(),
+      'has_image' => $request->hasFile('image'),
+      'files' => $request->allFiles(),
+      'headers' => $request->headers->all(),
+      'content_type' => $request->header('Content-Type'),
+      'method' => $request->method()
     ]);
 
-    if ($request->hasFile('image')) {
-      if ($fourniture->image_url) {
-        Storage::delete(str_replace('/storage/', 'public/', $fourniture->image_url));
+    try {
+      // Convertir la chaîne JSON des fournisseurs en tableau
+      if ($request->has('fournisseurs')) {
+        $fournisseurs = json_decode($request->fournisseurs, true);
+        Log::info('Fournisseurs décodés:', ['fournisseurs' => $fournisseurs]);
+        $request->merge(['fournisseurs' => $fournisseurs]);
       }
-      $path = $request->file('image')->store('fournitures', 'public');
-      $validated['image_url'] = Storage::url($path);
+
+      $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'reference' => ['required', 'string', Rule::unique('supplies')->ignore($fourniture)],
+        'packaging' => 'required|string|max:255',
+        'catalog_url' => 'nullable|url',
+        'category_id' => 'required|exists:categories,id',
+        'image' => 'nullable|image|max:2048',
+        'fournisseurs' => 'required|array',
+        'fournisseurs.*.id' => 'required|exists:suppliers,id',
+        'fournisseurs.*.reference' => 'required|string',
+        'fournisseurs.*.prix' => 'required|numeric|min:0',
+        'fournisseurs.*.catalog_url' => 'nullable|url',
+      ]);
+
+      Log::info('Validation réussie', ['validated_data' => $validated]);
+
+      if ($request->hasFile('image')) {
+        Log::info('Traitement de la nouvelle image', [
+          'file' => $request->file('image'),
+          'original_name' => $request->file('image')->getClientOriginalName(),
+          'mime_type' => $request->file('image')->getMimeType(),
+          'size' => $request->file('image')->getSize()
+        ]);
+
+        if ($fourniture->image_url) {
+          $oldPath = str_replace('/storage/', 'public/', $fourniture->image_url);
+          Log::info('Suppression de l\'ancienne image', ['path' => $oldPath]);
+          Storage::delete($oldPath);
+        }
+
+        $path = $request->file('image')->store('fournitures', 'public');
+        $validated['image_url'] = Storage::url($path);
+        Log::info('Nouvelle image stockée', ['path' => $path, 'url' => $validated['image_url']]);
+      }
+
+      $fourniture->update($validated);
+
+      $fourniture->fournisseurs()->sync(
+        collect($request->fournisseurs)->mapWithKeys(function ($item) {
+          return [$item['id'] => [
+            'supplier_reference' => $item['reference'],
+            'unit_price' => $item['prix'],
+            'catalog_url' => $item['catalog_url'] ?? null,
+          ]];
+        })
+      );
+
+      Log::info('Mise à jour réussie');
+
+      return redirect()->route('fournitures.show', $fourniture->id)
+        ->with('success', 'Fourniture mise à jour avec succès.');
+    } catch (\Exception $e) {
+      Log::error('Erreur lors de la mise à jour', [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+        'request_data' => $request->all(),
+        'validation_errors' => $e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : null
+      ]);
+
+      return back()->withErrors($e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : ['error' => 'Une erreur est survenue lors de la mise à jour.']);
     }
-
-    $fourniture->update($validated);
-
-    $fourniture->fournisseurs()->sync(
-      collect($request->fournisseurs)->mapWithKeys(function ($item) {
-        return [$item['id'] => [
-          'supplier_reference' => $item['reference'],
-          'unit_price' => $item['prix'],
-          'catalog_url' => $item['catalog_url'] ?? null,
-        ]];
-      })
-    );
-
-    return redirect()->route('fournitures.index')
-      ->with('success', 'Fourniture mise à jour avec succès.');
   }
 
   public function destroy(Fourniture $fourniture)

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import FileUpload from '@/components/ui/file-upload.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,13 +61,11 @@ const locationForm = useForm({
     name: '',
     description: '',
     etablissement_id: props.etablissement.id,
-    photo: null as File | null,
 });
 
 const editLocationForm = useForm({
     name: '',
     description: '',
-    photo: null as File | null,
 });
 
 const handleCreateLocation = () => {
@@ -196,18 +193,6 @@ const initEditForm = (emplacement: Emplacement) => {
                                                 </div>
                                             </div>
 
-                                            <div class="space-y-2">
-                                                <Label for="photo">Photo</Label>
-                                                <FileUpload
-                                                    v-model="locationForm.photo"
-                                                    accept="image/*"
-                                                    :max-size="2 * 1024 * 1024"
-                                                />
-                                                <div v-if="locationForm.errors.photo" class="text-sm text-red-600">
-                                                    {{ locationForm.errors.photo }}
-                                                </div>
-                                            </div>
-
                                             <div class="flex justify-end gap-4">
                                                 <DialogTrigger asChild>
                                                     <Button type="button" variant="outline">
@@ -266,19 +251,6 @@ const initEditForm = (emplacement: Emplacement) => {
                                                             />
                                                             <div v-if="editLocationForm.errors.description" class="text-sm text-red-600">
                                                                 {{ editLocationForm.errors.description }}
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="space-y-2">
-                                                            <Label for="edit-photo">Photo</Label>
-                                                            <FileUpload
-                                                                v-model="editLocationForm.photo"
-                                                                accept="image/*"
-                                                                :max-size="2 * 1024 * 1024"
-                                                                :current-file="emplacement.photo_path"
-                                                            />
-                                                            <div v-if="editLocationForm.errors.photo" class="text-sm text-red-600">
-                                                                {{ editLocationForm.errors.photo }}
                                                             </div>
                                                         </div>
 

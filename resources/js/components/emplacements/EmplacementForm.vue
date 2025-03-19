@@ -56,32 +56,6 @@
             </div>
           </div>
 
-          <div v-if="isEditing && emplacement.photo_path" class="form-group mb-3">
-            <label>Photo actuelle</label>
-            <div>
-              <img :src="'/storage/' + emplacement.photo_path"
-                   :alt="'Photo de ' + emplacement.nom"
-                   class="img-thumbnail"
-                   style="max-width: 200px">
-            </div>
-          </div>
-
-          <div class="form-group mb-3">
-            <label for="photo">{{ isEditing ? 'Modifier la photo' : 'Photo' }}</label>
-            <input type="file"
-                   class="form-control"
-                   :class="{ 'is-invalid': errors.photo }"
-                   id="photo"
-                   @change="handleFileUpload"
-                   accept="image/*">
-            <small class="form-text text-muted">
-              Format accepté : jpg, png, gif. Taille maximale : 2Mo
-            </small>
-            <div v-if="errors.photo" class="invalid-feedback">
-              {{ errors.photo[0] }}
-            </div>
-          </div>
-
           <div class="d-flex justify-content-between">
             <router-link :to="{ name: 'emplacements.index' }" class="btn btn-secondary">
               <i class="fas fa-arrow-left"></i> Retour
@@ -116,8 +90,7 @@ export default defineComponent({
       form: {
         nom: '',
         description: '',
-        etablissement_id: '',
-        photo: null as File | null
+        etablissement_id: ''
       },
       emplacement: null as any,
       etablissements: [] as any[],
@@ -168,13 +141,6 @@ export default defineComponent({
       }
     },
 
-    handleFileUpload(event: Event) {
-      const target = event.target as HTMLInputElement
-      if (target.files && target.files.length > 0) {
-        this.form.photo = target.files[0]
-      }
-    },
-
     async submitForm() {
       this.loading = true
       this.errors = {}
@@ -183,9 +149,6 @@ export default defineComponent({
       formData.append('nom', this.form.nom)
       formData.append('description', this.form.description || '')
       formData.append('etablissement_id', this.form.etablissement_id)
-      if (this.form.photo) {
-        formData.append('photo', this.form.photo)
-      }
 
       try {
         if (this.isEditing) {

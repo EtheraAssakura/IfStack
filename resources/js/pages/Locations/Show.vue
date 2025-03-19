@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="location.name">
+  <AppLayout :title="location.name" :breadcrumbs="breadcrumbs">
     <template #header>
       <div class="flex justify-between items-center">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -26,28 +26,25 @@
                   <h3 class="text-lg font-medium text-gray-900 mb-2">QR Code</h3>
                   <div class="bg-white p-4 rounded-lg shadow-md inline-block">
                     <img :src="location.qr_code_url" :alt="`QR Code de ${location.name}`" class="w-64 h-64" />
+                    
                   </div>
                   <div class="mt-4">
-                    <Button variant="outline" size="sm" as="a" :href="location.qr_code_url" download>
+                    <Button variant="outline" size="sm" @click="downloadQRCode">
                       Télécharger le QR Code
                     </Button>
                   </div>
                 </div>
                 <div v-else class="mb-4 w-full max-w-md h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <MapPinIcon class="h-16 w-16 text-gray-400" />
+                  <MapPin class="h-16 w-16 text-gray-400" />
                 </div>
                 <div class="space-y-4">
                   <div>
                     <h3 class="text-lg font-medium text-gray-900">Site</h3>
-                    <p class="mt-1 text-gray-600">{{ location.site }}</p>
+                    <p class="mt-1 text-gray-600">{{ location.etablissement.name }}</p>
                   </div>
                   <div>
                     <h3 class="text-lg font-medium text-gray-900">Description</h3>
                     <p class="mt-1 text-gray-600">{{ location.description || 'Aucune description' }}</p>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-medium text-gray-900">QR Code</h3>
-                    <p class="mt-1 text-gray-600 font-mono">{{ location.qr_code }}</p>
                   </div>
                 </div>
               </div>
@@ -108,17 +105,22 @@
 
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { MapPinIcon } from '@heroicons/vue/24/outline/index.js';
+import type { BreadcrumbItemType } from '@/types';
 import { Link } from '@inertiajs/vue3';
+import { MapPin } from 'lucide-vue-next';
 
 const props = defineProps<{
   location: {
     id: number
     name: string
     description: string | null
-    site: string
+    etablissement: {
+      id: number
+      name: string
+    }
     photo_url: string | null
     qr_code: string
+    qr_code_url: string | null
     stock_items: Array<{
       id: number
       supply: {
@@ -131,4 +133,64 @@ const props = defineProps<{
     }>
   }
 }>()
+
+const breadcrumbs: BreadcrumbItemType[] = [
+  {
+    title: 'Établissements',
+    href: route('etablissements.index'),
+  },
+  {
+    title: props.location.etablissement.name,
+    href: route('etablissements.show', props.location.etablissement.id),
+  },
+  {
+    title: props.location.name,
+    href: route('etablissements.locations.show', {
+      etablissement: props.location.etablissement.id,
+      location: props.location.id
+    }),
+  },
+];
+
+const downloadQRCode = async () => {
+  if (!props.location.qr_code_url) return;
+  
+  try {
+    // Créer un canvas temporaire
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Impossible de créer le contexte du canvas');
+
+    // Créer une image à partir du SVG
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // Pour éviter les problèmes CORS
+
+    // Attendre que l'image soit chargée
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = props.location.qr_code_url!;
+    });
+
+    // Définir la taille du canvas
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Dessiner l'image sur le canvas
+    ctx.drawImage(img, 0, 0);
+
+    // Convertir le canvas en PNG
+    const pngDataUrl = canvas.toDataURL('image/png');
+
+    // Créer un lien de téléchargement
+    const a = document.createElement('a');
+    a.href = pngDataUrl;
+    a.download = `qr-code-${props.location.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Erreur lors du téléchargement du QR Code:', error);
+  }
+}
 </script>

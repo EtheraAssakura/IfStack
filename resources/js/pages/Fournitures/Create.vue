@@ -29,6 +29,7 @@ const form = useForm({
   name: '',
   reference: '',
   packaging: '',
+  catalog_url: '',
   category_id: '',
   image: null as File | null,
   fournisseurs: [] as Array<{
@@ -51,9 +52,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const { isOverDropZone } = useDropZone(dropZone, {
-  onDrop: (files: File[]) => {
+  onDrop: (files: File[] | null) => {
+    if (!files) return;
     const file = files[0];
     if (file && file.type.startsWith('image/')) {
+      if (file.size > 2048 * 1024) {
+        alert('L\'image ne doit pas dépasser 2MB');
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        alert('Le format de l\'image doit être JPEG, PNG ou GIF');
+        return;
+      }
       form.image = file;
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -71,8 +81,17 @@ const { isOverDropZone } = useDropZone(dropZone, {
 });
 
 const handleFileInput = (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (file) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    if (file.size > 2048 * 1024) {
+      alert('L\'image ne doit pas dépasser 2MB');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      alert('Le format de l\'image doit être JPEG, PNG ou GIF');
+      return;
+    }
     form.image = file;
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -101,7 +120,34 @@ const removeFournisseur = (index: number) => {
 };
 
 const submit = () => {
-  form.post(route('fournitures.store'));
+  const data = {
+    name: form.name,
+    reference: form.reference,
+    packaging: form.packaging,
+    category_id: form.category_id,
+    catalog_url: form.catalog_url || '',
+    image: form.image,
+    fournisseurs: form.fournisseurs.map(f => ({
+      id: f.id,
+      reference: f.reference,
+      prix: f.prix,
+      catalog_url: f.catalog_url || ''
+    }))
+  };
+
+  form.transform(data => ({
+    ...data,
+    fournisseurs: JSON.stringify(data.fournisseurs)
+  })).post(route('fournitures.store'), {
+    preserveScroll: true,
+    onSuccess: () => {
+      form.reset();
+      preview.value = null;
+    },
+    onError: (errors) => {
+      console.error('Erreurs de validation:', errors);
+    }
+  });
 };
 </script>
 
@@ -114,7 +160,7 @@ const submit = () => {
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-          <form @submit.prevent="submit" class="p-6">
+          <form @submit.prevent="submit" class="p-6" enctype="multipart/form-data">
             <div class="space-y-6">
               <div>
                 <h3 class="text-lg font-medium text-gray-900">Informations générales</h3>
@@ -178,61 +224,48 @@ const submit = () => {
 
                 <div>
                   <Label for="image">Image</Label>
+                  <div v-if="preview" class="mb-2">
+                    <img :src="preview" alt="Aperçu" class="h-20 w-20 object-cover rounded" />
+                    <Button type="button" variant="destructive" size="sm" class="mt-2" @click="removeImage">Supprimer l'image</Button>
+                  </div>
                   <div
                     ref="dropZone"
-                    class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 rounded-md"
-                    :class="{
-                      'border-gray-300': !isOverDropZone && !isDragging,
-                      'border-indigo-500 bg-indigo-50': isOverDropZone || isDragging,
-                      'border-dashed': !preview
-                    }"
+                    class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+                    :class="{ 'border-indigo-500': isOverDropZone }"
                   >
                     <div class="space-y-1 text-center">
-                      <div v-if="preview" class="relative">
-                        <img :src="preview" alt="Aperçu" class="mx-auto h-32 w-auto object-contain" />
-                        <button
-                          type="button"
-                          @click="removeImage"
-                          class="absolute -top-2 -right-2 rounded-full bg-red-500 text-white p-1 hover:bg-red-600"
+                      <svg
+                        class="mx-auto h-12 w-12 text-gray-400"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 48 48"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <div class="flex text-sm text-gray-600">
+                        <label
+                          for="image"
+                          class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div v-else>
-                        <svg
-                          class="mx-auto h-12 w-12 text-gray-400"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                          <span>Télécharger un fichier</span>
+                          <input
+                            id="image"
+                            name="image"
+                            type="file"
+                            class="sr-only"
+                            accept="image/*"
+                            @change="handleFileInput"
                           />
-                        </svg>
-                        <div class="flex text-sm text-gray-600">
-                          <label
-                            for="image"
-                            class="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                          >
-                            <span>Télécharger un fichier</span>
-                            <input
-                              id="image"
-                              type="file"
-                              class="sr-only"
-                              accept="image/*"
-                              @input="handleFileInput"
-                            />
-                          </label>
-                          <p class="pl-1">ou glisser-déposer</p>
-                        </div>
-                        <p class="text-xs text-gray-500">PNG, JPG jusqu'à 10MB</p>
+                        </label>
+                        <p class="pl-1">ou glisser-déposer</p>
                       </div>
+                      <p class="text-xs text-gray-500">PNG, JPG jusqu'à 2MB</p>
                     </div>
                   </div>
                 </div>

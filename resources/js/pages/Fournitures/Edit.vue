@@ -6,6 +6,8 @@ import { Select } from '@/components/ui/select';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
+import { useDropZone } from '@vueuse/core';
+import { ref } from 'vue';
 
 interface Props {
   fourniture: {
@@ -41,6 +43,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const dropZone = ref<HTMLDivElement>();
+const isDragging = ref(false);
+const preview = ref<string | null>(props.fourniture.image_url);
 
 console.log('Props reçues:', {
   fourniture: props.fourniture,
@@ -56,16 +61,68 @@ const form = useForm({
   catalog_url: props.fourniture.catalog_url || '',
   category_id: props.fourniture.category_id,
   image: null as File | null,
-  fournisseurs: props.fourniture.fournisseurs.map(f => {
-    return {
-      id: f.id,
-      reference: f.pivot.supplier_reference,
-      prix: f.pivot.unit_price,
-      catalog_url: f.pivot.catalog_url || '',
-    };
-  }),
+  fournisseurs: props.fourniture.fournisseurs.map(f => ({
+    id: f.id,
+    reference: f.pivot.supplier_reference,
+    prix: f.pivot.unit_price,
+    catalog_url: f.pivot.catalog_url || '',
+  })),
 });
 
+const { isOverDropZone } = useDropZone(dropZone, {
+  onDrop: (files: File[] | null) => {
+    if (!files) return;
+    const file = files[0];
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 2048 * 1024) {
+        alert('L\'image ne doit pas dépasser 2MB');
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        alert('Le format de l\'image doit être JPEG, PNG ou GIF');
+        return;
+      }
+      form.image = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.value = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  },
+  onEnter: () => {
+    isDragging.value = true;
+  },
+  onLeave: () => {
+    isDragging.value = false;
+  },
+});
+
+const handleFileInput = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    if (file.size > 2048 * 1024) {
+      alert('L\'image ne doit pas dépasser 2MB');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      alert('Le format de l\'image doit être JPEG, PNG ou GIF');
+      return;
+    }
+    form.image = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const removeImage = () => {
+  form.image = null;
+  preview.value = null;
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -92,7 +149,35 @@ const removeFournisseur = (index: number) => {
 };
 
 const submit = () => {
-  form.put(route('fournitures.update', props.fourniture.id));
+  const data = {
+    _method: 'PUT',
+    name: form.name,
+    reference: form.reference,
+    packaging: form.packaging,
+    category_id: form.category_id,
+    catalog_url: form.catalog_url || '',
+    image: form.image,
+    fournisseurs: form.fournisseurs.map(f => ({
+      id: f.id,
+      reference: f.reference,
+      prix: f.prix,
+      catalog_url: f.catalog_url || ''
+    }))
+  };
+
+  form.transform(data => ({
+    ...data,
+    fournisseurs: JSON.stringify(data.fournisseurs)
+  })).post(route('fournitures.update', props.fourniture.id), {
+    preserveScroll: true,
+    onSuccess: () => {
+      form.reset();
+      preview.value = null;
+    },
+    onError: (errors) => {
+      console.error('Erreurs de validation:', errors);
+    }
+  });
 };
 </script>
 
@@ -105,7 +190,7 @@ const submit = () => {
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-          <form @submit.prevent="submit" class="p-6">
+          <form @submit.prevent="submit" class="p-6" enctype="multipart/form-data">
             <div class="space-y-6">
               <div>
                 <h3 class="text-lg font-medium text-gray-900">Informations générales</h3>
@@ -168,19 +253,51 @@ const submit = () => {
                   </Select>
                 </div>
 
-                
-
                 <div>
                   <Label for="image">Image</Label>
-                  <div v-if="fourniture.image_url" class="mb-2">
-                    <img :src="fourniture.image_url" alt="Image actuelle" class="h-20 w-20 object-cover rounded" />
+                  <div v-if="preview" class="mb-2">
+                    <img :src="preview" alt="Aperçu" class="h-20 w-20 object-cover rounded" />
+                    <Button type="button" variant="destructive" size="sm" class="mt-2" @click="removeImage">Supprimer l'image</Button>
                   </div>
-                  <Input
-                    id="image"
-                    type="file"
-                    class="mt-1 block w-full"
-                    @input="form.image = $event.target.files[0]"
-                  />
+                  <div
+                    ref="dropZone"
+                    class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+                    :class="{ 'border-indigo-500': isOverDropZone }"
+                  >
+                    <div class="space-y-1 text-center">
+                      <svg
+                        class="mx-auto h-12 w-12 text-gray-400"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 48 48"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <div class="flex text-sm text-gray-600">
+                        <label
+                          for="image"
+                          class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                        >
+                          <span>Télécharger un fichier ou glisser-déposer</span>
+                          <input
+                            id="image"
+                            name="image"
+                            type="file"
+                            class="sr-only"
+                            accept="image/*"
+                            @change="handleFileInput"
+                          />
+                        </label>
+                      </div>
+                      <p class="text-xs text-gray-500">PNG, JPG jusqu'à 10MB</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -275,7 +392,7 @@ const submit = () => {
                   variant="outline"
                 >
                   Annuler
-              </Button>
+                </Button>
                 <Button type="submit" :disabled="form.processing">
                   Mettre à jour
                 </Button>

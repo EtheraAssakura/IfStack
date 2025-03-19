@@ -2,35 +2,39 @@
 
 namespace App\Traits;
 
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\SvgWriter;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Illuminate\Support\Facades\Storage;
 
 trait GeneratesQrCodes
 {
     protected function generateQrCode(string $url, string $path): string
     {
-        $result = (new Builder(
-            writer: new SvgWriter(),
-            writerOptions: [
-                SvgWriter::WRITER_OPTION_EXCLUDE_XML_DECLARATION => true
-            ],
-            validateResult: false,
-            data: $url,
-            encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::High,
-            size: 300,
-            margin: 10,
-            roundBlockSizeMode: RoundBlockSizeMode::Margin
-        ))->build();
+        $qrCode = new QrCode($url);
+        $qrCode->setSize(300);
+        $qrCode->setMargin(10);
+        $qrCode->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh());
 
-        // Change l'extension du fichier en .svg
-        $path = str_replace('.png', '.svg', $path);
+        $writer = new SvgWriter();
+        $result = $writer->write($qrCode);
+
+        $fullPath = Storage::disk('public')->path($path);
+        \Illuminate\Support\Facades\Log::info('Génération QR Code:', [
+            'url' => $url,
+            'path' => $path,
+            'full_path' => $fullPath,
+            'exists' => file_exists($fullPath)
+        ]);
+
         Storage::disk('public')->put($path, $result->getString());
+        $url = Storage::url($path);
 
-        return Storage::url($path);
+        \Illuminate\Support\Facades\Log::info('QR Code généré:', [
+            'url' => $url,
+            'exists' => file_exists($fullPath)
+        ]);
+
+        return $url;
     }
 }

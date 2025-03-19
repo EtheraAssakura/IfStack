@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/fournitures/{fourniture}', [FournitureController::class, 'show'])->name('fournitures.show');
     Route::get('/fournitures/{fourniture}/edit', [FournitureController::class, 'edit'])->name('fournitures.edit');
     Route::put('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
+    Route::post('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
     Route::delete('/fournitures/{fourniture}', [FournitureController::class, 'destroy'])->name('fournitures.destroy');
 
     // Commandes
@@ -77,13 +78,14 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/etablissements/{etablissement}', [EtablissementController::class, 'show'])->name('etablissements.show');
     Route::get('/etablissements/{etablissement}/edit', [EtablissementController::class, 'edit'])->name('etablissements.edit');
     Route::put('/etablissements/{etablissement}', [EtablissementController::class, 'update'])->name('etablissements.update');
+    Route::post('/etablissements/{etablissement}', [EtablissementController::class, 'update'])->name('etablissements.update');
     Route::delete('/etablissements/{etablissement}', [EtablissementController::class, 'destroy'])->name('etablissements.destroy');
-    Route::post('/etablissements/{etablissement}/upload-plan', [EtablissementController::class, 'uploadPlan'])->name('etablissements.upload-plan');
 
     // Emplacements dans les établissements
     Route::post('/etablissements/{etablissement}/locations', [LocationController::class, 'store'])->name('etablissements.locations.store');
     Route::get('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'show'])->name('etablissements.locations.show');
     Route::put('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'update'])->name('etablissements.locations.update');
+    Route::post('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'update'])->name('etablissements.locations.update');
     Route::delete('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'destroy'])->name('etablissements.locations.destroy');
     Route::post('/etablissements/{etablissement}/locations/{location}/upload-photo', [LocationController::class, 'uploadPhoto'])->name('etablissements.locations.upload-photo');
 

@@ -106,6 +106,7 @@ class IsfacSeeder extends Seeder
         'emplacement_id' => 1,
         'quantite_estimee' => 15,
         'seuil_alerte_local' => 5,
+
       ],
       [
         'fourniture_id' => 2,

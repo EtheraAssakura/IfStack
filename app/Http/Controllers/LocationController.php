@@ -13,6 +13,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\QrCode;
+use Illuminate\Support\Facades\Log;
 
 class LocationController extends Controller
 {
@@ -47,27 +48,38 @@ class LocationController extends Controller
 
     public function store(Request $request, Etablissement $etablissement)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'photo' => 'nullable|image|max:2048'
+        Log::info('Début de la création de l\'emplacement', [
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all(),
+            'content_type' => $request->header('Content-Type'),
+            'method' => $request->method()
         ]);
 
-        $location = new Location([
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'site_id' => $etablissement->id,
-            'qr_code' => Str::uuid()->toString()
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string'
+            ]);
 
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('locations', 'public');
-            $location->photo_path = $path;
+            Log::info('Validation réussie', ['validated_data' => $validated]);
+
+            $location = new Location([
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'site_id' => $etablissement->id,
+                'qr_code' => Str::uuid()->toString()
+            ]);
+
+            $location->save();
+
+            return redirect()->back()->with('success', 'Emplacement créé avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la création de l\'emplacement', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la création de l\'emplacement.');
         }
-
-        $location->save();
-
-        return redirect()->back()->with('success', 'Emplacement créé avec succès.');
     }
 
     public function edit(Location $location)
@@ -77,8 +89,7 @@ class LocationController extends Controller
                 'id' => $location->id,
                 'name' => $location->name,
                 'description' => $location->description,
-                'site_id' => $location->site_id,
-                'photo_url' => $location->photo_path ? Storage::url($location->photo_path) : null,
+                'site_id' => $location->site_id
             ],
             'sites' => Site::select('id', 'name')->get()
         ]);
@@ -86,42 +97,47 @@ class LocationController extends Controller
 
     public function update(Request $request, Etablissement $etablissement, Location $location)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'photo' => 'nullable|image|max:2048'
+        Log::info('Début de la mise à jour de l\'emplacement', [
+            'location_id' => $location->id,
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all(),
+            'content_type' => $request->header('Content-Type'),
+            'method' => $request->method()
         ]);
 
-        if ($location->site_id !== $etablissement->id) {
-            abort(403);
-        }
-
-        $location->fill([
-            'name' => $validated['name'],
-            'description' => $validated['description']
-        ]);
-
-        if ($request->hasFile('photo')) {
-            if ($location->photo_path) {
-                Storage::disk('public')->delete($location->photo_path);
+        try {
+            if ($location->site_id !== $etablissement->id) {
+                abort(403);
             }
-            $path = $request->file('photo')->store('locations', 'public');
-            $location->photo_path = $path;
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string'
+            ]);
+
+            Log::info('Validation réussie', ['validated_data' => $validated]);
+
+            $location->fill([
+                'name' => $validated['name'],
+                'description' => $validated['description']
+            ]);
+
+            $location->save();
+
+            return redirect()->back()->with('success', 'Emplacement mis à jour avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour de l\'emplacement', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la mise à jour de l\'emplacement.');
         }
-
-        $location->save();
-
-        return redirect()->back()->with('success', 'Emplacement mis à jour avec succès.');
     }
 
     public function destroy(Etablissement $etablissement, Location $location)
     {
         if ($location->site_id !== $etablissement->id) {
             abort(403);
-        }
-
-        if ($location->photo_path) {
-            Storage::disk('public')->delete($location->photo_path);
         }
 
         $location->delete();
@@ -136,9 +152,11 @@ class LocationController extends Controller
         }
 
         // Générer l'URL pour le QR code
-        $qrCodeUrl = route('etablissements.locations.show', [$etablissement->id, $location->id]);
+        $url = route('etablissements.locations.show', [$etablissement->id, $location->id]);
         $qrCodePath = 'qrcodes/location_' . $location->id . '.svg';
-        $qrCodeUrl = $this->generateQrCode($qrCodeUrl, $qrCodePath);
+        $qrCodeUrl = $this->generateQrCode($url, $qrCodePath);
+
+        \Log::info('QR Code URL générée:', ['url' => $qrCodeUrl]);
 
         return Inertia::render('Locations/Show', [
             'location' => [
