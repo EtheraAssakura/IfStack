@@ -13,6 +13,10 @@ withDefaults(defineProps<Props>(), {
 defineOptions({
     name: 'AppLayout',
 });
+
+defineExpose({
+    name: 'AppLayout'
+});
 </script>
 
 <template>

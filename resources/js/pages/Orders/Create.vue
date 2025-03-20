@@ -77,45 +77,68 @@
               <div class="mb-6">
                 <div class="flex justify-between items-center mb-4">
                   <h3 class="text-lg font-medium text-gray-900">Articles de la Commande</h3>
-                  <button
-                    type="button"
-                    @click="openAddItemModal"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Ajouter un Article
-                  </button>
+                  <div class="flex space-x-2">
+                    <button
+                      type="button"
+                      @click="suggestItems"
+                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      Suggérer des Articles
+                    </button>
+                    <button
+                      type="button"
+                      @click="openAddItemModal"
+                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Ajouter un Article
+                    </button>
+                  </div>
                 </div>
                 <div v-if="form.items.length === 0" class="text-center py-4 text-gray-500">
                   Aucun article ajouté. Cliquez sur "Ajouter un Article" pour commencer.
                 </div>
 
-                <div v-else class="space-y-4">
-                  <div v-for="(item, index) in form.items" :key="index" class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    <div class="flex-1">
-                      <div class="text-sm font-medium text-gray-900">{{ getSupplyName(item.supply_id) }}</div>
-                      <div class="text-sm text-gray-500">Quantité: {{ item.quantity }}</div>
-                      <div class="text-sm text-gray-500">Prix Unitaire: {{ formatPrice(item.unit_price) }}</div>
-                      <div class="text-sm text-gray-500">Conditionnement: {{ getSupplyPackaging(item.supply_id) }}</div>
-                      <div class="text-sm font-medium text-gray-900">Total: {{ formatPrice(item.quantity * item.unit_price) }}</div>
+                <draggable
+                  v-else
+                  v-model="form.items"
+                  item-key="supply_id"
+                  class="space-y-4"
+                  handle=".drag-handle"
+                  ghost-class="bg-gray-100"
+                >
+                  <template #item="{ element: item, index }">
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                      <div class="cursor-move drag-handle">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                        </svg>
+                      </div>
+                      <div class="flex-1">
+                        <div class="text-sm font-medium text-gray-900">{{ getSupplyName(item.supply_id) }}</div>
+                        <div class="text-sm text-gray-500">Quantité: {{ item.quantity }}</div>
+                        <div class="text-sm text-gray-500">Prix Unitaire: {{ formatPrice(item.unit_price) }}</div>
+                        <div class="text-sm text-gray-500">Conditionnement: {{ getSupplyPackaging(item.supply_id) }}</div>
+                        <div class="text-sm font-medium text-gray-900">Total: {{ formatPrice(item.quantity * item.unit_price) }}</div>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button 
+                          type="button" 
+                          @click="editItem(index)" 
+                          class="text-blue-600 hover:text-blue-800"
+                        >
+                          <Pen class="h-5 w-5" />
+                        </button>
+                        <button 
+                          type="button" 
+                          @click="removeItem(index)" 
+                          class="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 class="h-5 w-5" />
+                        </button>
+                      </div>
                     </div>
-                    <div class="flex space-x-2">
-                      <button 
-                        type="button" 
-                        @click="editItem(index)" 
-                        class="text-blue-600 hover:text-blue-800"
-                      >
-                        <Pen class="h-5 w-5" />
-                      </button>
-                      <button 
-                        type="button" 
-                        @click="removeItem(index)" 
-                        class="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 class="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  </template>
+                </draggable>
               </div>
 
               <div class="flex justify-end">
@@ -200,6 +223,7 @@ import type { BreadcrumbItemType } from '@/types'
 import { Link, useForm } from '@inertiajs/vue3'
 import { Pen, Trash2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import draggable from 'vuedraggable'
 
 interface Props {
   suppliers: Array<{
@@ -215,11 +239,21 @@ interface Props {
       id: number
       unit_price: number
     }>
+    stock_items: Array<{
+      local_alert_threshold: number
+      estimated_quantity: number
+    }>
   }>
   errors: Record<string, string>
 }
 
 const props = defineProps<Props>()
+
+interface OrderItem {
+  supply_id: number
+  quantity: number
+  unit_price: number
+}
 
 const breadcrumbs: BreadcrumbItemType[] = [
   {
@@ -232,11 +266,11 @@ const breadcrumbs: BreadcrumbItemType[] = [
   },
 ]
 
-const form = useForm({
+const form = useForm<Record<string, any>>({
   supplier_id: '',
   order_date: '',
   expected_delivery_date: '',
-  items: [],
+  items: [] as OrderItem[],
 })
 
 const showAddItemModal = ref(false)
@@ -358,6 +392,54 @@ const updateUnitPrice = () => {
   } else {
     newItem.value.unit_price = 0
   }
+}
+
+const suggestItems = () => {
+  if (!form.supplier_id) {
+    alert('Veuillez sélectionner un fournisseur d\'abord')
+    return
+  }
+
+  const suppliesToAdd = props.supplies.filter(supply => {
+    // Vérifier si l'article est lié au fournisseur sélectionné
+    const supplier = supply.suppliers.find(s => s.id === Number(form.supplier_id))
+    if (!supplier) return false
+
+    // Vérifier si au moins un emplacement a un stock inférieur au seuil d'alerte
+    return supply.stock_items?.some(stockItem => 
+      stockItem.local_alert_threshold && stockItem.estimated_quantity < stockItem.local_alert_threshold
+    ) || false
+  })
+
+  suppliesToAdd.forEach(supply => {
+    const supplier = supply.suppliers.find(s => s.id === Number(form.supplier_id))
+    if (supplier) {
+      // Calculer la quantité totale nécessaire en fonction de tous les emplacements
+      const totalQuantity = supply.stock_items?.reduce((total, stockItem) => {
+        if (stockItem.local_alert_threshold && stockItem.estimated_quantity < stockItem.local_alert_threshold) {
+          return total + (stockItem.local_alert_threshold - stockItem.estimated_quantity) * 2
+        }
+        return total
+      }, 0) || 0
+
+      if (totalQuantity > 0) {
+        // Vérifier si l'article existe déjà dans la commande
+        const existingItemIndex = form.items.findIndex(item => item.supply_id === supply.id)
+        
+        if (existingItemIndex !== -1) {
+          // Mettre à jour la quantité de l'article existant
+          form.items[existingItemIndex].quantity = totalQuantity
+        } else {
+          // Ajouter un nouvel article
+          form.items.push({
+            supply_id: supply.id,
+            quantity: totalQuantity,
+            unit_price: supplier.unit_price,
+          })
+        }
+      }
+    }
+  })
 }
 
 watch(() => [newItem.value.supply_id, form.supplier_id], updateUnitPrice)

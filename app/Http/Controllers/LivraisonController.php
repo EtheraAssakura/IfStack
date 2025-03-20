@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Commande;
+use App\Models\Order;
 use App\Models\Emplacement;
-use App\Models\Livraison;
+use App\Models\Delivery;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,19 +15,19 @@ class LivraisonController extends Controller
 {
   public function index()
   {
-    $livraisons = Livraison::with(['commande', 'user', 'details.emplacement.etablissement'])
+    $livraisons = Delivery::with(['commande', 'user', 'details.emplacement.etablissement'])
       ->orderBy('date_prevue')
       ->get();
     return view('livraisons.index', compact('livraisons'));
   }
 
-  public function create(Commande $commande)
+  public function create(Order $commande)
   {
     $emplacements = Emplacement::with('etablissement')->get();
     return view('livraisons.create', compact('commande', 'emplacements'));
   }
 
-  public function store(Request $request, Commande $commande)
+  public function store(Request $request, Order $commande)
   {
     $validated = $request->validate([
       'date_prevue' => 'required|date',
@@ -38,7 +38,7 @@ class LivraisonController extends Controller
     ]);
 
     DB::transaction(function () use ($validated, $commande) {
-      $livraison = Livraison::create([
+      $livraison = Delivery::create([
         'commande_id' => $commande->id,
         'user_id' => Auth::id(),
         'date_prevue' => $validated['date_prevue'],
@@ -54,13 +54,13 @@ class LivraisonController extends Controller
       ->with('success', 'Livraison planifiée avec succès.');
   }
 
-  public function show(Livraison $livraison)
+  public function show(Delivery $livraison)
   {
     $livraison->load(['commande', 'user', 'details.emplacement.etablissement', 'details.fourniture']);
     return view('livraisons.show', compact('livraison'));
   }
 
-  public function effectuer(Request $request, Livraison $livraison)
+  public function effectuer(Request $request, Delivery $livraison)
   {
     DB::transaction(function () use ($request, $livraison) {
       foreach ($livraison->details as $detail) {
@@ -89,7 +89,7 @@ class LivraisonController extends Controller
       ->with('success', 'Livraison effectuée avec succès.');
   }
 
-  public function generateBonLivraison(Livraison $livraison)
+  public function generateBonLivraison(Delivery $livraison)
   {
     $livraison->load(['commande', 'user', 'details.emplacement.etablissement', 'details.fourniture']);
 
@@ -100,7 +100,7 @@ class LivraisonController extends Controller
 
   public function calendar()
   {
-    $livraisons = Livraison::with(['commande', 'user'])
+    $livraisons = Delivery::with(['commande', 'user'])
       ->where('date_prevue', '>=', now()->subDays(30))
       ->get()
       ->map(function ($livraison) {

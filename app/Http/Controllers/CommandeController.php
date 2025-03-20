@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Models\Order;
+use App\Models\Supply;
+use App\Models\Supplier;
 
 class CommandeController extends Controller
 {
   public function index()
   {
-    $commandes = Commande::with(['fournisseur', 'user', 'lignes.fourniture'])
+    $commandes = Order::with(['fournisseur', 'items.fourniture', 'user'])
       ->orderBy('created_at', 'desc')
       ->get();
     return view('commandes.index', compact('commandes'));
@@ -24,38 +27,37 @@ class CommandeController extends Controller
 
   public function create()
   {
-    $fournisseurs = Fournisseur::all();
-    $fournitures = Fourniture::with(['stocks' => function ($query) {
-      $query->whereRaw('quantite_estimee <= COALESCE(seuil_alerte_local, fournitures.seuil_alerte_global)');
-    }])->get();
-
-    return view('commandes.create', compact('fournisseurs', 'fournitures'));
+    $fournitures = Supply::all();
+    $fournisseurs = Supplier::all();
+    return view('commandes.create', compact('fournitures', 'fournisseurs'));
   }
 
   public function store(Request $request)
   {
     $validated = $request->validate([
-      'fournisseur_id' => 'required|exists:fournisseurs,id',
+      'fournisseur_id' => 'required|exists:suppliers,id',
       'date_commande' => 'required|date',
-      'date_livraison_prevue' => 'nullable|date|after:date_commande',
-      'lignes' => 'required|array|min:1',
-      'lignes.*.fourniture_id' => 'required|exists:fournitures,id',
-      'lignes.*.quantite' => 'required|integer|min:1',
-      'lignes.*.prix_unitaire' => 'required|numeric|min:0',
+      'date_livraison_prevue' => 'required|date|after:date_commande',
+      'items' => 'required|array|min:1',
+      'items.*.fourniture_id' => 'required|exists:supplies,id',
+      'items.*.quantite' => 'required|integer|min:1',
+      'notes' => 'nullable|string'
     ]);
 
     DB::transaction(function () use ($validated) {
-      $commande = Commande::create([
-        'reference' => 'CMD' . date('YmdHis'),
+      $commande = Order::create([
         'fournisseur_id' => $validated['fournisseur_id'],
-        'user_id' => Auth::id(),
-        'statut' => 'en_cours',
         'date_commande' => $validated['date_commande'],
         'date_livraison_prevue' => $validated['date_livraison_prevue'],
+        'notes' => $validated['notes'],
+        'user_id' => Auth::id()
       ]);
 
-      foreach ($validated['lignes'] as $ligne) {
-        $commande->lignes()->create($ligne);
+      foreach ($validated['items'] as $item) {
+        $commande->items()->create([
+          'fourniture_id' => $item['fourniture_id'],
+          'quantite' => $item['quantite']
+        ]);
       }
     });
 
@@ -63,14 +65,64 @@ class CommandeController extends Controller
       ->with('success', 'Commande créée avec succès.');
   }
 
-  public function show(Commande $commande)
+  public function show(Order $commande)
   {
-    $commande->load(['fournisseur', 'user', 'lignes.fourniture', 'livraisons.details']);
+    $commande->load(['fournisseur', 'items.fourniture', 'user']);
     return view('commandes.show', compact('commande'));
   }
 
-  public function exportExcel(Commande $commande)
+  public function edit(Order $commande)
   {
+    $fournitures = Supply::all();
+    $fournisseurs = Supplier::all();
+    $commande->load('items');
+    return view('commandes.edit', compact('commande', 'fournitures', 'fournisseurs'));
+  }
+
+  public function update(Request $request, Order $commande)
+  {
+    $validated = $request->validate([
+      'fournisseur_id' => 'required|exists:suppliers,id',
+      'date_commande' => 'required|date',
+      'date_livraison_prevue' => 'required|date|after:date_commande',
+      'items' => 'required|array|min:1',
+      'items.*.fourniture_id' => 'required|exists:supplies,id',
+      'items.*.quantite' => 'required|integer|min:1',
+      'notes' => 'nullable|string'
+    ]);
+
+    DB::transaction(function () use ($validated, $commande) {
+      $commande->update([
+        'fournisseur_id' => $validated['fournisseur_id'],
+        'date_commande' => $validated['date_commande'],
+        'date_livraison_prevue' => $validated['date_livraison_prevue'],
+        'notes' => $validated['notes']
+      ]);
+
+      $commande->items()->delete();
+
+      foreach ($validated['items'] as $item) {
+        $commande->items()->create([
+          'fourniture_id' => $item['fourniture_id'],
+          'quantite' => $item['quantite']
+        ]);
+      }
+    });
+
+    return redirect()->route('commandes.index')
+      ->with('success', 'Commande mise à jour avec succès.');
+  }
+
+  public function destroy(Order $commande)
+  {
+    $commande->delete();
+    return redirect()->route('commandes.index')
+      ->with('success', 'Commande supprimée avec succès.');
+  }
+
+  public function exportExcel(Order $commande)
+  {
+    $commande->load(['fournisseur', 'items.fourniture', 'user']);
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
 
@@ -118,17 +170,29 @@ class CommandeController extends Controller
     $writer->save('php://output');
   }
 
-  public function valider(Commande $commande)
+  public function exportPdf(Order $commande)
+  {
+    $commande->load(['fournisseur', 'items.fourniture', 'user']);
+    // ... rest of the method ...
+  }
+
+  public function exportBonCommande(Order $commande)
+  {
+    $commande->load(['fournisseur', 'items.fourniture', 'user']);
+    // ... rest of the method ...
+  }
+
+  public function valider(Order $commande)
   {
     $commande->update(['statut' => 'validee']);
-    return redirect()->route('commandes.show', $commande)
+    return redirect()->route('commandes.index')
       ->with('success', 'Commande validée avec succès.');
   }
 
-  public function annuler(Commande $commande)
+  public function annuler(Order $commande)
   {
     $commande->update(['statut' => 'annulee']);
-    return redirect()->route('commandes.show', $commande)
+    return redirect()->route('commandes.index')
       ->with('success', 'Commande annulée avec succès.');
   }
 }

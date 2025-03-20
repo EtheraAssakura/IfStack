@@ -88,6 +88,11 @@ const getStockValue = (stock: Stock, path: string) => {
                             </Link>
                         </Button>
                         <Button as-child>
+                            <Link :href="route('stocks.create', { site: props.site })">
+                                Gérer les stocks
+                            </Link>
+                        </Button>
+                        <Button as-child>
                             <Link :href="route('stocks.export', { site })">
                                 Exporter
                             </Link>

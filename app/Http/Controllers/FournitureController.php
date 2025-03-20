@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categorie;
-use App\Models\Fourniture;
-use App\Models\Fournisseur;
+use App\Models\Category;
+use App\Models\Supply;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +16,7 @@ class FournitureController extends Controller
 {
   public function index(): Response
   {
-    $fournitures = Fourniture::with(['categorie', 'fournisseurs'])->get();
+    $fournitures = Supply::with(['category', 'suppliers'])->get();
 
     $mappedFournitures = $fournitures->map(function ($fourniture) {
       return [
@@ -25,10 +25,10 @@ class FournitureController extends Controller
         'reference' => $fourniture->reference,
         'packaging' => $fourniture->packaging,
         'category' => [
-          'id' => $fourniture->categorie->id,
-          'name' => $fourniture->categorie->name,
+          'id' => $fourniture->category->id,
+          'name' => $fourniture->category->name,
         ],
-        'fournisseurs' => $fourniture->fournisseurs->map(function ($fournisseur) {
+        'fournisseurs' => $fourniture->suppliers->map(function ($fournisseur) {
           return [
             'id' => $fournisseur->id,
             'name' => $fournisseur->name,
@@ -50,8 +50,8 @@ class FournitureController extends Controller
 
   public function create(): Response
   {
-    $categories = Categorie::all();
-    $fournisseurs = Fournisseur::all();
+    $categories = Category::all();
+    $fournisseurs = Supplier::all();
     return Inertia::render('Fournitures/Create', [
       'categories' => $categories,
       'fournisseurs' => $fournisseurs
@@ -106,9 +106,9 @@ class FournitureController extends Controller
         Log::info('Image stockée', ['path' => $path, 'url' => $validated['image_url']]);
       }
 
-      $fourniture = Fourniture::create($validated);
+      $fourniture = Supply::create($validated);
 
-      $fourniture->fournisseurs()->attach(
+      $fourniture->suppliers()->attach(
         collect($request->fournisseurs)->mapWithKeys(function ($item) {
           return [$item['id'] => [
             'supplier_reference' => $item['reference'],
@@ -134,11 +134,11 @@ class FournitureController extends Controller
     }
   }
 
-  public function show(Fourniture $fourniture): Response
+  public function show(Supply $fourniture): Response
   {
     $fourniture->load([
-      'categorie',
-      'fournisseurs',
+      'category',
+      'suppliers',
       'stocks.emplacement.etablissement'
     ]);
     return Inertia::render('Fournitures/Show', [
@@ -148,11 +148,11 @@ class FournitureController extends Controller
         'reference' => $fourniture->reference,
         'packaging' => $fourniture->packaging,
         'image_url' => $fourniture->image_url,
-        'category' => $fourniture->categorie ? [
-          'id' => $fourniture->categorie->id,
-          'name' => $fourniture->categorie->name,
+        'category' => $fourniture->category ? [
+          'id' => $fourniture->category->id,
+          'name' => $fourniture->category->name,
         ] : null,
-        'fournisseurs' => $fourniture->fournisseurs->map(function ($fournisseur) {
+        'fournisseurs' => $fourniture->suppliers->map(function ($fournisseur) {
           return [
             'id' => $fournisseur->id,
             'name' => $fournisseur->name,
@@ -183,16 +183,16 @@ class FournitureController extends Controller
     ]);
   }
 
-  public function edit(Fourniture $fourniture): Response
+  public function edit(Supply $fourniture): Response
   {
-    $fourniture->load(['categorie', 'fournisseurs']);
-    $categories = Categorie::all();
-    $fournisseurs = Fournisseur::all();
+    $fourniture->load(['category', 'suppliers']);
+    $categories = Category::all();
+    $fournisseurs = Supplier::all();
 
     Log::info('Données de la fourniture:', [
       'id' => $fourniture->id,
       'category_id' => $fourniture->category_id,
-      'categorie' => $fourniture->categorie,
+      'category' => $fourniture->category,
     ]);
 
     $data = [
@@ -204,11 +204,11 @@ class FournitureController extends Controller
         'catalog_url' => $fourniture->catalog_url,
         'image_url' => $fourniture->image_url,
         'category_id' => $fourniture->category_id,
-        'category' => $fourniture->categorie ? [
-          'id' => $fourniture->categorie->id,
-          'name' => $fourniture->categorie->name,
+        'category' => $fourniture->category ? [
+          'id' => $fourniture->category->id,
+          'name' => $fourniture->category->name,
         ] : null,
-        'fournisseurs' => $fourniture->fournisseurs->map(function ($fournisseur) {
+        'fournisseurs' => $fourniture->suppliers->map(function ($fournisseur) {
           return [
             'id' => $fournisseur->id,
             'name' => $fournisseur->name,
@@ -230,7 +230,7 @@ class FournitureController extends Controller
     return Inertia::render('Fournitures/Edit', $data);
   }
 
-  public function update(Request $request, Fourniture $fourniture)
+  public function update(Request $request, Supply $fourniture)
   {
     Log::info('Début de la mise à jour de la fourniture', [
       'fourniture_id' => $fourniture->id,
@@ -287,7 +287,7 @@ class FournitureController extends Controller
 
       $fourniture->update($validated);
 
-      $fourniture->fournisseurs()->sync(
+      $fourniture->suppliers()->sync(
         collect($request->fournisseurs)->mapWithKeys(function ($item) {
           return [$item['id'] => [
             'supplier_reference' => $item['reference'],
@@ -313,7 +313,7 @@ class FournitureController extends Controller
     }
   }
 
-  public function destroy(Fourniture $fourniture)
+  public function destroy(Supply $fourniture)
   {
     if ($fourniture->image_url) {
       Storage::delete(str_replace('/storage/', 'public/', $fourniture->image_url));

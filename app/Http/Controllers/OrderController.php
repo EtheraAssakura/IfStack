@@ -50,6 +50,8 @@ class OrderController extends Controller
             ->with(['suppliers' => function ($query) {
                 $query->select('suppliers.id', 'suppliers.name')
                     ->withPivot('unit_price');
+        }, 'stockItems' => function ($query) {
+            $query->select('supply_id', 'local_alert_threshold', 'estimated_quantity');
             }])
             ->get()
             ->map(function ($supply) {
@@ -65,6 +67,12 @@ class OrderController extends Controller
                             'unit_price' => $supplier->pivot->unit_price,
                         ];
                     }),
+                'stock_items' => $supply->stockItems->map(function ($stockItem) {
+                    return [
+                        'local_alert_threshold' => $stockItem->local_alert_threshold,
+                        'estimated_quantity' => $stockItem->estimated_quantity,
+                    ];
+                }),
                 ];
             });
 
@@ -316,6 +324,8 @@ class OrderController extends Controller
             ->with(['suppliers' => function ($query) {
                 $query->select('suppliers.id', 'suppliers.name')
                     ->withPivot('unit_price');
+        }, 'stockItems' => function ($query) {
+            $query->select('supply_id', 'local_alert_threshold', 'estimated_quantity');
             }])
             ->get()
             ->map(function ($supply) {
@@ -331,6 +341,12 @@ class OrderController extends Controller
                             'unit_price' => $supplier->pivot->unit_price,
                         ];
                     }),
+                'stock_items' => $supply->stockItems->map(function ($stockItem) {
+                    return [
+                        'local_alert_threshold' => $stockItem->local_alert_threshold,
+                        'estimated_quantity' => $stockItem->estimated_quantity,
+                    ];
+                }),
                 ];
             });
 

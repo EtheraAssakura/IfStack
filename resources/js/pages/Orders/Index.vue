@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="Commandes">
+  <AppLayout title="Commandes" :breadcrumbs="breadcrumbs">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Liste des commandes
@@ -137,10 +137,11 @@
   </AppLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import type { BreadcrumbItemType } from '@/types'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
 import { MoreVertical } from 'lucide-vue-next'
@@ -148,6 +149,10 @@ import { MoreVertical } from 'lucide-vue-next'
 const props = defineProps({
   orders: Array,
 })
+
+const breadcrumbs: BreadcrumbItemType[] = [
+  { title: 'Commandes', href: route('orders.index') },
+]
 
 const validateOrder = (order) => {
   router.post(route('orders.validate', order.id))

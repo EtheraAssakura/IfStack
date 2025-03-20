@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class StockController extends Controller
 {
@@ -37,6 +39,117 @@ class StockController extends Controller
   {
     // Utiliser la méthode sites pour récupérer les sites
     return $this->sites();
+  }
+
+  public function create(Request $request): Response
+  {
+    $site = $request->get('site', '');
+
+    Log::info('Création de stock', [
+      'site' => $site,
+      'request_all' => $request->all()
+    ]);
+
+    $query = Emplacement::with(['etablissement', 'stocks']);
+
+    if ($site) {
+      $query->whereHas('etablissement', function ($q) use ($site) {
+        $q->where('slug', 'isfac-' . $site);
+      });
+
+      Log::info('Filtrage des emplacements par site', [
+        'site' => $site,
+        'sql' => $query->toSql(),
+        'bindings' => $query->getBindings()
+      ]);
+    }
+
+    $emplacements = $query->get();
+    $fournitures = Fourniture::all();
+
+    Log::info('Emplacements récupérés', [
+      'count' => $emplacements->count(),
+      'site' => $site,
+      'first_emplacement' => $emplacements->first() ? [
+        'id' => $emplacements->first()->id,
+        'name' => $emplacements->first()->name,
+        'etablissement' => $emplacements->first()->etablissement->name,
+      ] : null,
+    ]);
+
+    return Inertia::render('Stocks/Create', [
+      'emplacements' => $emplacements->map(function ($emplacement) {
+        return [
+          'id' => $emplacement->id,
+          'name' => $emplacement->name,
+          'etablissement' => [
+            'id' => $emplacement->etablissement->id,
+            'name' => $emplacement->etablissement->name,
+            'slug' => $emplacement->etablissement->slug,
+          ],
+          'stocks' => $emplacement->stocks->map(function ($stock) {
+            return [
+              'fourniture_id' => $stock->supply_id,
+              'estimated_quantity' => $stock->estimated_quantity,
+              'local_alert_threshold' => $stock->local_alert_threshold,
+            ];
+          }),
+        ];
+      }),
+      'fournitures' => $fournitures,
+      'site' => $site,
+      'site_name' => $site ? str_replace('isfac-', '', $emplacements->first()?->etablissement->name ?? '') : '',
+    ]);
+  }
+
+  public function store(Request $request)
+  {
+    Log::info('Vérification de la table supplies', [
+      'table_exists' => Schema::hasTable('supplies'),
+      'tables' => DB::select('SHOW TABLES'),
+    ]);
+
+    $validated = $request->validate([
+      'emplacement_id' => 'required|exists:locations,id',
+      'stocks' => 'required|array|min:1',
+      'stocks.*.fourniture_id' => 'required|exists:supplies,id',
+      'stocks.*.estimated_quantity' => 'required|integer|min:0',
+      'stocks.*.local_alert_threshold' => 'required|integer|min:0',
+    ]);
+
+    // Récupérer les stocks existants pour cet emplacement
+    $existingStocks = Stock::where('location_id', $validated['emplacement_id'])->get();
+
+    // Créer un tableau des IDs des fournitures dans la requête
+    $requestedSupplyIds = collect($validated['stocks'])->pluck('fourniture_id')->toArray();
+
+    // Supprimer les stocks qui n'existent plus dans la requête
+    $existingStocks->each(function ($stock) use ($requestedSupplyIds) {
+      if (!in_array($stock->supply_id, $requestedSupplyIds)) {
+        $stock->delete();
+      }
+    });
+
+    // Mettre à jour ou créer les stocks
+    foreach ($validated['stocks'] as $stockData) {
+      Stock::updateOrCreate(
+        [
+          'location_id' => $validated['emplacement_id'],
+          'supply_id' => $stockData['fourniture_id'],
+        ],
+        [
+          'estimated_quantity' => $stockData['estimated_quantity'],
+          'local_alert_threshold' => $stockData['local_alert_threshold'],
+        ]
+      );
+    }
+
+    // Récupérer le site de l'emplacement créé
+    $emplacement = Emplacement::with('etablissement')->find($validated['emplacement_id']);
+    $site = str_replace('isfac-', '', $emplacement->etablissement->slug);
+
+    return redirect()->route('stocks.by-site', ['site' => $site])
+      ->with('success', 'Stocks mis à jour avec succès.');
   }
 
   public function stocksBySite(Request $request): Response

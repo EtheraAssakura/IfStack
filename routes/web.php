@@ -40,6 +40,8 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/stocks', [StockController::class, 'index'])->name('stocks.index');
     Route::get('/stocks/sites', [StockController::class, 'sites'])->name('stocks.sites');
     Route::get('/stocks/by-site', [StockController::class, 'stocksBySite'])->name('stocks.by-site');
+    Route::get('/stocks/create', [StockController::class, 'create'])->name('stocks.create');
+    Route::post('/stocks', [StockController::class, 'store'])->name('stocks.store');
     Route::get('/stocks/{stock}', [StockController::class, 'show'])->name('stocks.show');
     Route::get('/stocks/{stock}/edit', [StockController::class, 'edit'])->name('stocks.edit');
     Route::put('/stocks/{stock}', [StockController::class, 'update'])->name('stocks.update');

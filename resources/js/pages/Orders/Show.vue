@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="`Order ${order.order_number}`">
+  <AppSidebarLayout :breadcrumbs="breadcrumbItems">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Détails de la Commande
@@ -236,95 +236,136 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AppSidebarLayout>
 </template>
 
-<script>
-import AppLayout from '@/Layouts/AppLayout.vue'
-import { Link } from '@inertiajs/vue3'
+<script setup lang="ts">
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue'
+import type { BreadcrumbItem } from '@/types'
+import { Link, useForm } from '@inertiajs/vue3'
 import axios from 'axios'
-import { defineComponent } from 'vue'
 
-export default defineComponent({
-  components: {
-    AppLayout,
-    Link,
+interface Supply {
+  reference: string
+  supplier_reference?: string
+  name: string
+  packaging: string
+}
+
+interface OrderItem {
+  id: number
+  quantity: number
+  unit_price: number
+  supply: Supply
+}
+
+interface User {
+  name: string
+}
+
+interface Supplier {
+  name: string
+  catalog_url?: string
+}
+
+interface Delivery {
+  id: number
+  delivery_date: string
+  status: 'pending' | 'completed' | 'cancelled'
+  items: any[]
+  user: User
+}
+
+interface Order {
+  id: number
+  order_number: string
+  status: 'pending' | 'validated' | 'cancelled'
+  order_date: string
+  expected_delivery_date: string
+  total_amount: number
+  user: User
+  supplier: Supplier
+  items: OrderItem[]
+  deliveries: Delivery[]
+}
+
+const props = defineProps<{
+  order: Order
+}>()
+
+const breadcrumbItems: BreadcrumbItem[] = [
+  {
+    title: 'Commandes',
+    href: route('orders.index')
   },
+  {
+    title: `Commande ${props.order.order_number}`,
+    href: route('orders.show', props.order.id)
+  }
+]
 
-  props: {
-    order: Object,
-  },
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(price)
+}
 
-  mounted() {
-    console.log('Order items with packaging:', this.order.items.map(item => ({
-      name: item.supply.name,
-      packaging: item.supply.packaging
-    })));
-  },
+const validateOrder = () => {
+  useForm({}).post(route('orders.validate', props.order.id))
+}
 
-  methods: {
-    formatPrice(price) {
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR',
-      }).format(price)
-    },
+const cancelOrder = () => {
+  useForm({}).post(route('orders.cancel', props.order.id))
+}
 
-    validateOrder() {
-      this.$inertia.post(route('orders.validate', this.order.id))
-    },
+const exportToExcel = async () => {
+  try {
+    const response = await axios.get(route('orders.export', props.order.id), {
+      responseType: 'blob'
+    })
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `order_${props.order.order_number}.xlsx`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch (error) {
+    console.error('Error exporting to Excel:', error)
+    alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
+  }
+}
 
-    cancelOrder() {
-      this.$inertia.post(route('orders.cancel', this.order.id))
-    },
+const exportToCSV = async () => {
+  try {
+    const csvContent = props.order.items
+      .map(item => [
+        item.supply.supplier_reference || '',
+        item.quantity
+      ])
+      .map(row => row.join(';'))
+      .join('\n')
 
-    async exportToExcel() {
-      try {
-        const response = await axios.get(route('orders.export', this.order.id), {
-          responseType: 'blob'
-        })
-        
-        const url = window.URL.createObjectURL(new Blob([response.data]))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', `order_${this.order.order_number}.xlsx`)
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
-      } catch (error) {
-        console.error('Error exporting to Excel:', error)
-        alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
-      }
-    },
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `order_${props.order.order_number}_supplier_refs.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Error exporting to CSV:', error)
+    alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
+  }
+}
 
-    async exportToCSV() {
-      
-      try {
-        // Créer le contenu CSV avec uniquement la référence fournisseur et la quantité
-        const csvContent = this.order.items
-          .map(item => [
-            item.supply.supplier_reference || '',
-            item.quantity
-          ])
-          .map(row => row.join(';'))
-          .join('\n')
-
-        // Créer le blob et le lien de téléchargement
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', `order_${this.order.order_number}_supplier_refs.csv`)
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
-        window.URL.revokeObjectURL(url)
-        
-      } catch (error) {
-        console.error('Error exporting to CSV:', error)
-        alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
-      }
-    },
-  },
-})
+// Log des items avec leur conditionnement
+console.log('Order items with packaging:', props.order.items.map(item => ({
+  name: item.supply.name,
+  packaging: item.supply.packaging
+})))
 </script> 
