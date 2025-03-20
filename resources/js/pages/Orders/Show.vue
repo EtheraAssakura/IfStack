@@ -19,6 +19,12 @@
               </Link>
               <div>
                 <button
+                  @click="exportToCSV"
+                  class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mr-2"
+                >
+                  Exporter en CSV
+                </button>
+                <button
                   @click="exportToExcel"
                   class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
                 >
@@ -287,6 +293,35 @@ export default defineComponent({
         link.remove()
       } catch (error) {
         console.error('Error exporting to Excel:', error)
+        alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
+      }
+    },
+
+    async exportToCSV() {
+      
+      try {
+        // Créer le contenu CSV avec uniquement la référence fournisseur et la quantité
+        const csvContent = this.order.items
+          .map(item => [
+            item.supply.supplier_reference || '',
+            item.quantity
+          ])
+          .map(row => row.join(';'))
+          .join('\n')
+
+        // Créer le blob et le lien de téléchargement
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `order_${this.order.order_number}_supplier_refs.csv`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+        
+      } catch (error) {
+        console.error('Error exporting to CSV:', error)
         alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
       }
     },

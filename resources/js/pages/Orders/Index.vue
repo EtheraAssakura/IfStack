@@ -114,7 +114,13 @@
                               <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                               </svg>
-                              Exporter
+                              Exporter en Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem @click="exportToCSV(order)" class="flex items-center gap-2">
+                              <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                              </svg>
+                              Exporter en CSV
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -169,4 +175,33 @@ const exportToExcel = async (order) => {
     alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
   }
 }
+
+const exportToCSV = async (order) => {
+      
+      try {
+        // Créer le contenu CSV avec uniquement la référence fournisseur et la quantité
+        const csvContent = order.items
+          .map(item => [
+            item.supply.supplier_reference || '',
+            item.quantity
+          ])
+          .map(row => row.join(';'))
+          .join('\n')
+
+        // Créer le blob et le lien de téléchargement
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `order_${order.order_number}_supplier_refs.csv`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+        
+      } catch (error) {
+        console.error('Error exporting to CSV:', error)
+        alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
+      }
+    }
 </script> 
