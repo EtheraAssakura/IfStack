@@ -93,8 +93,8 @@ const getStockValue = (stock: Stock, path: string) => {
                             </Link>
                         </Button>
                         <Button as-child>
-                            <Link :href="route('stocks.export', { site })">
-                                Exporter
+                            <Link :href="route('stocks.export', { site: props.site })">
+                                Exporter en Excel
                             </Link>
                         </Button>
                     </div>

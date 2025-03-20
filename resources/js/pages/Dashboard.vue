@@ -120,10 +120,10 @@ const stocksEnAlerte = computed(() => {
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Commandes en cours</h3>
                         <p class="text-3xl font-bold text-indigo-600">{{ stats.pending_orders }}</p>
                     </div>
-                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                    <!-- <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Livraisons planifiées</h3>
                         <p class="text-3xl font-bold text-indigo-600">{{ stats.planned_deliveries }}</p>
-                    </div>
+                    </div> -->
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Alertes non traitées</h3>
                         <p class="text-3xl font-bold text-red-600">{{ stats.unhandled_alerts }}</p>
@@ -176,7 +176,7 @@ const stocksEnAlerte = computed(() => {
                 </div>
 
                 <!-- Livraisons de la semaine -->
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mb-6">
+                <!-- <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mb-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Livraisons de la semaine</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -209,7 +209,7 @@ const stocksEnAlerte = computed(() => {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Top 5 des fournitures -->
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">

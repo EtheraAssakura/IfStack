@@ -16,7 +16,6 @@ import {
     Package,
     Scale,
     Shield,
-    Truck,
     Users
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
@@ -47,11 +46,11 @@ const mainNavItems: NavItem[] = [
         href: route('orders.index'),
         icon: ClipboardList,
     },
-    {
-        title: 'Livraisons',
-        href: route('livraisons.index'),
-        icon: Truck,
-    },
+    // {
+    //     title: 'Livraisons',
+    //     href: route('livraisons.index'),
+    //     icon: Truck,
+    // },
     {
         title: 'Alertes',
         href: route('notifications.index'),
