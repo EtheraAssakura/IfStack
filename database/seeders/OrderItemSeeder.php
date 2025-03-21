@@ -11,11 +11,15 @@ class OrderItemSeeder extends Seeder
     {
         // Récupérer les IDs des commandes
         $cmd001Id = DB::table('orders')
-            ->where('reference', 'CMD-2024-001')
+            ->where('order_number', 'ORD-20250321105632')
             ->value('id');
 
         $cmd002Id = DB::table('orders')
-            ->where('reference', 'CMD-2024-002')
+            ->where('order_number', 'ORD-20250322105633')
+            ->value('id');
+
+        $cmd003Id = DB::table('orders')
+            ->where('order_number', 'ORD-20250323105634')
             ->value('id');
 
         // Récupérer les IDs des fournitures
@@ -56,6 +60,15 @@ class OrderItemSeeder extends Seeder
                 'supply_id' => $classeurId,
                 'quantity' => 100,
                 'unit_price' => 2.75,
+                'created_at' => now()->subDays(5),
+                'updated_at' => now()->subDays(5),
+            ],
+            // Lignes pour CMD-2024-003
+            [
+                'order_id' => $cmd003Id,
+                'supply_id' => $papierA4Id,
+                'quantity' => 30,
+                'unit_price' => 4.50,
                 'created_at' => now()->subDays(5),
                 'updated_at' => now()->subDays(5),
             ],

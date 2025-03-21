@@ -63,7 +63,9 @@
                         }"
                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                       >
-                        {{ order.status }}
+                        {{ order.status === 'pending' ? 'En attente' : 
+                           order.status === 'validated' ? 'Validée' : 
+                           order.status === 'cancelled' ? 'Annulée' : order.status }}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

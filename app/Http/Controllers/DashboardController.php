@@ -67,7 +67,9 @@ class DashboardController extends Controller
         // Top 5 des fournitures les plus commandées
         $topSupplies = DB::table('order_items')
             ->join('supplies', 'supplies.id', '=', 'order_items.supply_id')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->select('supplies.name', 'supplies.reference', DB::raw('SUM(quantity) as total_ordered'))
+            ->where('orders.status', 'validated')
             ->groupBy('supplies.id', 'supplies.name', 'supplies.reference')
             ->orderByDesc('total_ordered')
             ->limit(5)

@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             StockItemSeeder::class,
             AlertSeeder::class,
             ReportingSeeder::class,
+            OrderSeeder::class,
+            OrderItemSeeder::class,
         ]);
     }
 }
