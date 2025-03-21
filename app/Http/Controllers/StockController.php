@@ -312,125 +312,107 @@ class StockController extends Controller
   public function export(Request $request, ?string $site = null)
   {
     try {
-      Log::info('Début de l\'export des stocks', [
-        'site' => $site,
-        'request_site' => $request->query('site'),
-        'request_all' => $request->all(),
-        'method' => $request->method()
-      ]);
+      // Créer un fichier de log spécifique pour l'export
+      $logFile = storage_path('logs/export.log');
+      file_put_contents($logFile, "=== Début de l'export " . now()->format('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
 
-      $site = $site ?? $request->query('site');
+      $site = $site ?? $request->input('site');
+      file_put_contents($logFile, "Site: " . $site . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Request site: " . $request->input('site') . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Request all: " . json_encode($request->all()) . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Method: " . $request->method() . "\n", FILE_APPEND);
 
-      // Récupérer les données
-      $stocks = Stock::select(
-        'stock_items.id',
-        'stock_items.estimated_quantity',
-        'stock_items.local_alert_threshold',
-        'locations.name as emplacement_name',
-        'supplies.name as fourniture_name',
-        'supplies.reference as fourniture_reference'
-      )
+      // Construire la requête SQL
+      $query = DB::table('stock_items')
+        ->select([
+          'stock_items.id',
+          'stock_items.estimated_quantity',
+          'stock_items.local_alert_threshold',
+          'locations.name as emplacement_name',
+          'supplies.name as fourniture_name',
+          'supplies.reference as fourniture_reference'
+      ])
         ->join('locations', 'locations.id', '=', 'stock_items.location_id')
         ->join('supplies', 'supplies.id', '=', 'stock_items.supply_id')
         ->join('sites', 'sites.id', '=', 'locations.site_id')
-        ->when($site, function ($query) use ($site) {
-          return $query->where('sites.slug', 'isfac-' . $site);
-        })
+        ->where('sites.slug', 'isfac-' . $site)
         ->orderBy('locations.name')
-        ->orderBy('supplies.name')
-        ->get();
+        ->orderBy('supplies.name');
 
-      Log::info('Stocks récupérés pour l\'export', [
-        'count' => $stocks->count(),
-        'site' => $site,
-        'first_stock' => $stocks->first()
-      ]);
+      file_put_contents($logFile, "SQL Query: " . $query->toSql() . "\n", FILE_APPEND);
+      file_put_contents($logFile, "SQL Bindings: " . json_encode($query->getBindings()) . "\n", FILE_APPEND);
+
+      $stocks = $query->get();
+      file_put_contents($logFile, "Nombre de stocks: " . $stocks->count() . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Premier stock:\n" . json_encode($stocks->first(), JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Encodage du premier stock: " . mb_detect_encoding(json_encode($stocks->first())) . "\n", FILE_APPEND);
 
       // Créer le fichier Excel
       $spreadsheet = new Spreadsheet();
       $sheet = $spreadsheet->getActiveSheet();
 
-      // En-tête simple
-      $sheet->setCellValue('A1', 'État des stocks');
-      $sheet->setCellValue('A2', 'Date d\'export : ' . now()->format('d/m/Y H:i'));
-      if ($site) {
-        $sheet->setCellValue('A3', 'Site : ' . ucfirst($site));
-      }
+      // En-têtes
+      $sheet->setCellValue('A1', 'Emplacement');
+      $sheet->setCellValue('B1', 'Fourniture');
+      $sheet->setCellValue('C1', 'Référence');
+      $sheet->setCellValue('D1', 'Quantité');
+      $sheet->setCellValue('E1', 'Seuil d\'alerte');
 
-      // En-têtes des colonnes
-      $headers = ['Emplacement', 'Fourniture', 'Référence', 'Quantité', 'Seuil Local', 'Statut'];
-      $col = 'A';
-      $row = 5;
-      foreach ($headers as $header) {
-        $sheet->setCellValue($col . $row, $header);
-        $col++;
-      }
+      // Style des en-têtes
+      $headerStyle = [
+        'font' => ['bold' => true],
+        'fill' => [
+          'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+          'startColor' => ['rgb' => 'E2EFDA']
+        ]
+      ];
+      $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
 
       // Données
-      $row = 6;
+      $row = 2;
       foreach ($stocks as $stock) {
         $sheet->setCellValue('A' . $row, $stock->emplacement_name);
         $sheet->setCellValue('B' . $row, $stock->fourniture_name);
         $sheet->setCellValue('C' . $row, $stock->fourniture_reference);
         $sheet->setCellValue('D' . $row, $stock->estimated_quantity);
         $sheet->setCellValue('E' . $row, $stock->local_alert_threshold);
-
-        $status = $stock->estimated_quantity <= $stock->local_alert_threshold ? 'En alerte' : 'Normal';
-        $sheet->setCellValue('F' . $row, $status);
-
         $row++;
       }
 
-      // Auto-dimensionner les colonnes
-      foreach (range('A', 'F') as $col) {
+      // Ajuster la largeur des colonnes
+      foreach (range('A', 'E') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
       }
 
-      Log::info('Fichier Excel créé, début de l\'écriture');
-
-      // Créer le fichier temporaire
-      $tempFile = storage_path('app/temp/stocks_' . ($site ? $site . '_' : '') . now()->format('Y-m-d_His') . '.xlsx');
-
       // Créer le dossier temp s'il n'existe pas
-      if (!file_exists(storage_path('app/temp'))) {
-        mkdir(storage_path('app/temp'), 0777, true);
+      $tempDir = storage_path('app/temp');
+      if (!file_exists($tempDir)) {
+        mkdir($tempDir, 0777, true);
       }
 
       // Sauvegarder le fichier
+      $filename = 'stocks_' . ($site ? $site . '_' : '') . now()->format('Y-m-d_His') . '.xlsx';
+      $filepath = $tempDir . '/' . $filename;
       $writer = new Xlsx($spreadsheet);
-      $writer->save($tempFile);
+      $writer->save($filepath);
 
-      Log::info('Fichier Excel sauvegardé temporairement', [
-        'temp_file' => $tempFile,
-        'file_exists' => file_exists($tempFile),
-        'file_size' => filesize($tempFile)
-      ]);
+      file_put_contents($logFile, "Fichier temporaire créé: " . $filepath . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Le fichier existe: " . (file_exists($filepath) ? 'Oui' : 'Non') . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Taille du fichier: " . filesize($filepath) . " bytes\n", FILE_APPEND);
 
-      // Nettoyer le buffer de sortie
-      if (ob_get_level()) {
-        ob_end_clean();
-      }
-
-      // Définir les en-têtes HTTP
-      header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      header('Content-Disposition: attachment;filename="stocks_' . ($site ? $site . '_' : '') . now()->format('Y-m-d_His') . '.xlsx"');
-      header('Cache-Control: max-age=0');
-      header('Pragma: no-cache');
-      header('Expires: 0');
-      header('Content-Length: ' . filesize($tempFile));
-      header('Content-Transfer-Encoding: binary');
-
-      // Lire et envoyer le fichier
-      readfile($tempFile);
-
-      // Supprimer le fichier temporaire
-      unlink($tempFile);
-
-      exit;
+      // Forcer le téléchargement du fichier
+      return response()->download($filepath, $filename, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        'Pragma' => 'no-cache',
+        'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+        'Expires' => '0'
+      ])->deleteFileAfterSend(true);
     } catch (\Exception $e) {
-      Log::error('Erreur lors de l\'export des stocks : ' . $e->getMessage());
-      Log::error($e->getTraceAsString());
-      return back()->with('error', 'Une erreur est survenue lors de l\'exportation des stocks. Veuillez réessayer.');
+      file_put_contents($logFile, "Erreur: " . $e->getMessage() . "\n", FILE_APPEND);
+      file_put_contents($logFile, "Trace: " . $e->getTraceAsString() . "\n", FILE_APPEND);
+      file_put_contents($logFile, "=== Fin de l'export avec erreur " . now()->format('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
+      throw $e;
     }
   }
 }

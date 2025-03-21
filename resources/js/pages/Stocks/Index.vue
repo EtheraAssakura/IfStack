@@ -92,11 +92,11 @@ const getStockValue = (stock: Stock, path: string) => {
                                 Gérer les stocks
                             </Link>
                         </Button>
-                        <Button as-child>
-                            <Link :href="route('stocks.export', { site: props.site })">
+                        <form :action="route('stocks.export', { site: props.site })" method="GET" class="inline">
+                            <Button type="submit">
                                 Exporter en Excel
-                            </Link>
-                        </Button>
+                            </Button>
+                        </form>
                     </div>
                 </div>
 
