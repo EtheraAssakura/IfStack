@@ -11,4 +11,12 @@
 defineProps<{
     disabled?: boolean;
 }>();
+
+defineOptions({
+    name: 'SecondaryButton'
+});
+
+defineExpose({
+    name: 'SecondaryButton'
+});
 </script>

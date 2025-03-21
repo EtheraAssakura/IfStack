@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserStockView from '@/components/Stock/UserStockView.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -7,43 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import type { Stock } from '@/types/app';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 
-interface Alerte {
-    id: number;
-    type: string;
-    comment: string;
-    created_at: string;
-    user: {
-        name: string;
-    };
-}
-
-interface Stock {
-    id: number;
-    estimated_quantity: number;
-    local_alert_threshold: number;
-    fourniture: {
-        id: number;
-        name: string;
-        reference: string;
-    };
-    emplacement: {
-        id: number;
-        name: string;
-        etablissement: {
-            id: number;
-            name: string;
-        };
-    };
-    alertes: Alerte[];
-}
-
-interface Props {
+const props = defineProps<{
     stock: Stock;
-}
+}>();
 
-const props = defineProps<Props>();
+const page = usePage();
+const isUser = page.props.auth?.user?.roles?.some(role => role.name === 'Utilisateur') ?? false;
 
 const breadcrumbs: BreadcrumbItemType[] = [
     {
@@ -52,7 +25,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
     },
     {
         title: 'Détails du stock',
-        href: '#',
+        href: route('stocks.show', props.stock.id),
     },
 ];
 
@@ -80,7 +53,8 @@ const signalRupture = () => {
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mb-6">
+                <UserStockView v-if="isUser" :stock="stock" />
+                <div v-else class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mb-6">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Détails du stock</h1>
@@ -188,20 +162,17 @@ const signalRupture = () => {
                     </div>
                 </div>
 
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                <div v-if="stock.alertes?.length" class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Historique des alertes</h2>
-                    <div v-if="stock.alertes.length === 0" class="text-center text-gray-500">
-                        Aucune alerte enregistrée
-                    </div>
-                    <div v-else class="space-y-4">
+                    <div class="space-y-4">
                         <div v-for="alerte in stock.alertes" :key="alerte.id" class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                            <Badge :variant="alerte.type === 'rupture' ? 'destructive' : 'warning'">
+                            <Badge :variant="alerte.type === 'rupture' ? 'destructive' : 'default'">
                                 {{ alerte.type === 'rupture' ? 'Rupture' : 'Seuil atteint' }}
                             </Badge>
                             <div class="flex-1">
-                                <p class="text-sm text-gray-900">{{ alerte.comment }}</p>
+                                <p class="text-sm text-gray-900">{{ alerte.message }}</p>
                                 <p class="text-xs text-gray-500">
-                                    Par {{ alerte.user.name }} le {{ new Date(alerte.created_at).toLocaleDateString() }}
+                                    Le {{ new Date(alerte.created_at).toLocaleDateString() }}
                                 </p>
                             </div>
                         </div>

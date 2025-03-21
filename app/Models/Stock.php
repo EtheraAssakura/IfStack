@@ -37,6 +37,11 @@ class Stock extends Model
     return $this->hasMany(Alerte::class, 'stock_id');
   }
 
+  public function movements(): HasMany
+  {
+    return $this->hasMany(StockMovement::class, 'stock_id');
+  }
+
   public function estEnRupture(): bool
   {
     return $this->estimated_quantity <= $this->local_alert_threshold;

@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import TextInput from '@/components/TextInput.vue';
 import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+
+defineOptions({
+    name: 'StockList'
+});
 
 const props = defineProps<{
     stocks: Array<{
@@ -24,10 +28,12 @@ const props = defineProps<{
         estimated_quantity: number;
         local_alert_threshold: number | null;
     }>;
+    showTakeButton?: boolean;
 }>();
 
 const emit = defineEmits<{
     (e: 'transfer', stock: any): void;
+    (e: 'edit', stock: any): void;
 }>();
 
 const search = ref('');
@@ -109,12 +115,14 @@ const filteredStocks = computed(() => {
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <SecondaryButton
+                                v-if="showTakeButton"
                                 class="mr-2"
                                 @click="$emit('transfer', stock)"
                             >
-                                Transférer
+                                Prendre
                             </SecondaryButton>
                             <PrimaryButton
+                                v-if="!showTakeButton"
                                 @click="$emit('edit', stock)"
                             >
                                 Ajuster

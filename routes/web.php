@@ -15,6 +15,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 // Routes d'authentification
@@ -26,14 +27,36 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', function () {
+        $user = Auth::user();
+        $locationId = request()->query('location');
+
+        if (!$locationId && $user && $user->site_id) {
+            $location = \App\Models\Location::where('site_id', $user->site_id)->first();
+            if ($location) {
+                $locationId = $location->id;
+            }
+        }
+
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
+            'locationId' => $locationId,
         ]);
-    });
+    })->name('welcome');
 
+    // Route pour la prise de fournitures
+    Route::get('/stock/take', [StockController::class, 'take'])->name('stock.take');
+    Route::post('/stock/take/{stock}', [StockController::class, 'takeStock'])->name('stock.take.submit');
+
+    // Route pour la création de demandes
+    Route::get('/requests/create', function () {
+        return Inertia::render('Requests/Create');
+    })->name('requests.create');
+});
+
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Routes des stocks

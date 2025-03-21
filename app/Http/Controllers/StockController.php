@@ -6,6 +6,7 @@ use App\Models\Alerte;
 use App\Models\Emplacement;
 use App\Models\Fourniture;
 use App\Models\Stock;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -214,7 +215,7 @@ class StockController extends Controller
 
   public function show(Stock $stock): Response
   {
-    $stock->load(['fourniture', 'emplacement.etablissement', 'alertes.user']);
+    $stock->load(['fourniture', 'emplacement.etablissement', 'alertes']);
     return Inertia::render('Stocks/Show', [
       'stock' => [
         'id' => $stock->id,
@@ -224,6 +225,7 @@ class StockController extends Controller
           'id' => $stock->fourniture->id,
           'name' => $stock->fourniture->name,
           'reference' => $stock->fourniture->reference,
+          'packaging' => $stock->fourniture->packaging,
         ],
         'emplacement' => [
           'id' => $stock->emplacement->id,
@@ -236,12 +238,9 @@ class StockController extends Controller
         'alertes' => $stock->alertes->map(function ($alerte) {
           return [
             'id' => $alerte->id,
-            'type' => $alerte->type,
-            'comment' => $alerte->comment,
+            'type' => $alerte->type === 'rupture' ? 'rupture' : 'seuil_atteint',
+            'message' => $alerte->commentaire,
             'created_at' => $alerte->created_at,
-            'user' => [
-              'name' => $alerte->user->name,
-            ],
           ];
         }),
       ],
@@ -261,24 +260,29 @@ class StockController extends Controller
 
   public function update(Request $request, Stock $stock)
   {
+    $user = Auth::user();
+    $isUser = $user->roles->contains('name', 'Utilisateur');
+
+    if ($isUser) {
+      // Pour les utilisateurs, on ne permet que la mise à jour de la quantité
+      $validated = $request->validate([
+        'estimated_quantity' => 'required|numeric|min:0',
+      ]);
+
+      $stock->update($validated);
+
+      return redirect()->back()->with('success', 'Quantité mise à jour avec succès.');
+    }
+
+    // Pour les autres rôles, on permet la mise à jour complète
     $validated = $request->validate([
-      'estimated_quantity' => 'required|integer|min:0',
-      'local_alert_threshold' => 'nullable|integer|min:0',
+      'estimated_quantity' => 'required|numeric|min:0',
+      'local_alert_threshold' => 'required|numeric|min:0',
     ]);
 
     $stock->update($validated);
 
-    if ($stock->estEnRupture()) {
-      Alerte::create([
-        'stock_id' => $stock->id,
-        'user_id' => Auth::id(),
-        'type' => 'seuil_atteint',
-        'commentaire' => 'Mise à jour du stock en dessous du seuil d\'alerte',
-      ]);
-    }
-
-    return redirect()->route('stocks.show', $stock)
-      ->with('success', 'Stock mis à jour avec succès.');
+    return redirect()->back()->with('success', 'Stock mis à jour avec succès.');
   }
 
   public function scanQr($qrCode): Response
@@ -364,13 +368,37 @@ class StockController extends Controller
         'fill' => [
           'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
           'startColor' => ['rgb' => 'E2EFDA']
+        ],
+        'alignment' => [
+          'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+          'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
         ]
       ];
       $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
 
+      // Style pour les données
+      $dataStyle = [
+        'alignment' => [
+          'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+          'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+        ]
+      ];
+
       // Données
       $row = 2;
+      $currentEmplacement = null;
+      $startRow = 2;
+
       foreach ($stocks as $stock) {
+        if ($currentEmplacement !== $stock->emplacement_name) {
+          // Fusionner les cellules de l'emplacement précédent s'il existe
+          if ($currentEmplacement !== null && $row > $startRow) {
+            $sheet->mergeCells('A' . $startRow . ':A' . ($row - 1));
+          }
+          $currentEmplacement = $stock->emplacement_name;
+          $startRow = $row;
+        }
+
         $sheet->setCellValue('A' . $row, $stock->emplacement_name);
         $sheet->setCellValue('B' . $row, $stock->fourniture_name);
         $sheet->setCellValue('C' . $row, $stock->fourniture_reference);
@@ -378,6 +406,14 @@ class StockController extends Controller
         $sheet->setCellValue('E' . $row, $stock->local_alert_threshold);
         $row++;
       }
+
+      // Fusionner les cellules du dernier emplacement
+      if ($currentEmplacement !== null && $row > $startRow) {
+        $sheet->mergeCells('A' . $startRow . ':A' . ($row - 1));
+      }
+
+      // Appliquer le style de centrage à toutes les données
+      $sheet->getStyle('A2:E' . ($row - 1))->applyFromArray($dataStyle);
 
       // Ajuster la largeur des colonnes
       foreach (range('A', 'E') as $col) {
@@ -414,5 +450,85 @@ class StockController extends Controller
       file_put_contents($logFile, "=== Fin de l'export avec erreur " . now()->format('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
       throw $e;
     }
+  }
+
+  public function take(Request $request): Response
+  {
+    $locationId = (int) $request->get('locationId');
+
+    Log::info('Prise de stock - Paramètres reçus', [
+      'locationId' => $locationId,
+      'request_all' => $request->all()
+    ]);
+
+    $query = Stock::with(['fourniture', 'emplacement.etablissement']);
+
+    if ($locationId) {
+      $query->where('location_id', $locationId);
+    }
+
+    $stocks = $query->get()
+      ->map(function ($stock) {
+        return [
+          'id' => $stock->id,
+          'supply' => [
+            'id' => $stock->fourniture->id,
+            'name' => $stock->fourniture->name,
+            'reference' => $stock->fourniture->reference,
+            'packaging' => $stock->fourniture->packaging,
+          ],
+          'location' => [
+            'id' => (int) $stock->emplacement->id,
+            'name' => $stock->emplacement->name,
+            'site' => [
+              'id' => (int) $stock->emplacement->etablissement->id,
+              'name' => $stock->emplacement->etablissement->name,
+            ],
+          ],
+          'estimated_quantity' => (int) $stock->estimated_quantity,
+          'local_alert_threshold' => (int) $stock->local_alert_threshold,
+        ];
+      });
+
+    Log::info('Prise de stock - Données préparées', [
+      'stocks_count' => $stocks->count(),
+      'first_stock' => $stocks->first(),
+      'locationId' => $locationId
+    ]);
+
+    return Inertia::render('Stocks/Take', [
+      'stocks' => $stocks,
+      'locationId' => (string) $locationId,
+    ]);
+  }
+
+  public function takeStock(Request $request, Stock $stock)
+  {
+    $validated = $request->validate([
+      'quantity' => 'required|integer|min:0',
+      'comment' => 'nullable|string|max:255',
+    ]);
+
+    $previousQuantity = $stock->estimated_quantity;
+    $difference = $validated['quantity'] - $previousQuantity;
+    $adjustmentType = $difference >= 0 ? 'inventory_increase' : 'inventory_decrease';
+
+    $stock->update([
+      'estimated_quantity' => $validated['quantity']
+    ]);
+
+    // Créer un mouvement de stock pour l'ajustement d'inventaire
+    StockMovement::create([
+      'supply_id' => $stock->supply_id,
+      'location_id' => $stock->location_id,
+      'user_id' => Auth::id(),
+      'type' => 'inventory_adjustment',
+      'quantity' => $difference,
+      'previous_quantity' => $previousQuantity,
+      'new_quantity' => $validated['quantity'],
+      'reason' => $validated['comment'] ?? 'Ajustement d\'inventaire',
+    ]);
+
+    return redirect()->back()->with('success', 'Inventaire mis à jour avec succès.');
   }
 }

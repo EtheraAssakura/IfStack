@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useGeneratesQrCodes } from '@/composables/useGeneratesQrCodes';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
@@ -54,7 +55,7 @@ const editingLocation = ref<Emplacement | null>(null);
 const breadcrumbs: BreadcrumbItemType[] = [
     {
         title: 'Établissements',
-        href: '/etablissements',
+        href: '/etablissement',
     },
     {
         title: props.etablissement.name,
@@ -72,6 +73,8 @@ const editLocationForm = useForm({
     name: '',
     description: '',
 });
+
+const { generateQrCode } = useGeneratesQrCodes();
 
 const handleCreateLocation = () => {
     locationForm.post(route('etablissements.locations.store', props.etablissement.id), {
@@ -101,6 +104,8 @@ const initEditForm = (emplacement: Emplacement) => {
     editLocationForm.name = emplacement.name;
     editLocationForm.description = emplacement.description;
 };
+
+
 </script>
 
 <template>

@@ -20,6 +20,10 @@ defineOptions({
   name: 'TextInput',
 });
 
+defineExpose({
+  name: 'TextInput'
+});
+
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target) {

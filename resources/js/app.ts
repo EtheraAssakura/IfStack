@@ -5,6 +5,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import UserLayout from './layouts/user/UserLayout.vue';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -28,10 +29,14 @@ createInertiaApp({
         return pages[`./pages/${name}.vue`];
     },
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
-            .mount(el);
+            .use(ZiggyVue);
+
+        // Enregistrer le layout globalement
+        app.component('UserLayout', UserLayout);
+        
+        app.mount(el);
     },
     progress: {
         color: '#4B5563',

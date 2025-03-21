@@ -10,4 +10,8 @@
 defineOptions({
   name: 'PrimaryButton',
 });
+
+defineExpose({
+  name: 'PrimaryButton'
+});
 </script>
