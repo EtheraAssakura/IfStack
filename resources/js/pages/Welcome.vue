@@ -1,17 +1,49 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const page = usePage();
 const isAdmin = page.props.auth.user?.roles?.some(role => role.name === 'Administrateur');
+const showLocationModal = ref(false);
 console.log('User roles:', page.props.auth.user?.roles);
 console.log('Is admin:', isAdmin);
 
 const props = defineProps<{
-    locationId: number;
+    locationId?: number;
+    site?: {
+        id: number;
+        name: string;
+        locations: Array<{
+            id: number;
+            name: string;
+        }>;
+    };
 }>();
+
+const locationId = computed(() => {
+    if (props.locationId) {
+        return props.locationId;
+    }
+    return props.site?.id;
+});
 
 const handleLogout = () => {
     router.post(route('logout'));
+};
+
+const handleTakeStock = () => {
+    if (props.locationId) {
+        router.visit(route('stock.take', { locationId: props.locationId }));
+    } else {
+        showLocationModal.value = true;
+    }
+};
+
+const selectLocation = (locationId: number) => {
+    router.visit(route('stock.take', { locationId }));
+    showLocationModal.value = false;
 };
 </script>
 
@@ -29,12 +61,13 @@ const handleLogout = () => {
                 </div>
 
                 <div class="flex flex-col gap-4">
-                    <Link
-                        :href="route('stock.take', { locationId: props.locationId })"
-                        class="w-full py-3 bg-transparent border-2 border-white text-white rounded-full font-medium transition-all hover:bg-white/10"
+                    <button
+                        @click="handleTakeStock"
+                        class="w-full py-3 bg-transparent border-2 border-white text-white rounded-full font-medium transition-all hover:bg-white/10 text-base"
                     >
-                        Voir les stocks de l'emplacement
-                    </Link>
+                        J'ai pris une fourniture
+                    </button>
+                    
                     <Link
                         v-if="!isAdmin"
                         :href="route('notifications.create')"
@@ -42,6 +75,7 @@ const handleLogout = () => {
                     >
                         Je veux faire une demande
                     </Link>
+
                     <Link
                         v-if="isAdmin"
                         :href="route('dashboard')"
@@ -49,6 +83,7 @@ const handleLogout = () => {
                     >
                         Accéder au tableau de bord
                     </Link>
+
                     <button
                         v-if="page.props.auth.user"
                         @click="handleLogout"
@@ -59,6 +94,25 @@ const handleLogout = () => {
                 </div>
             </div>
         </main>
+
+        <Dialog :open="showLocationModal" @update:open="showLocationModal = $event">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Sélectionnez l'emplacement</DialogTitle>
+                </DialogHeader>
+                <div class="grid grid-cols-1 gap-2 mt-4">
+                    <Button
+                        v-for="location in site?.locations"
+                        :key="location.id"
+                        variant="outline"
+                        class="w-full"
+                        @click="selectLocation(location.id)"
+                    >
+                        {{ location.name }}
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>
 

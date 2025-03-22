@@ -10,10 +10,12 @@ import { computed, ref } from 'vue';
 
 const props = defineProps<{
     stocks: Stock[];
-    locationId: string;
+    locationId?: string;
+    siteId?: string;
+    site?: Stock;
 }>();
 
-console.log('Props reçues:', { stocks: props.stocks, locationId: props.locationId });
+console.log('Props reçues:', { stocks: props.stocks, locationId: props.locationId, siteId: props.siteId });
 
 const breadcrumbs: BreadcrumbItemType[] = [
     {
@@ -27,7 +29,13 @@ const breadcrumbs: BreadcrumbItemType[] = [
 ];
 
 const filteredStocks = computed(() => {
-    return props.stocks.filter(stock => stock.location.id === Number(props.locationId));
+    if (props.siteId) {
+        return props.stocks.filter(stock => stock.location.site.id === Number(props.siteId));
+    }
+    if (props.locationId) {
+        return props.stocks.filter(stock => stock.location.id === Number(props.locationId));
+    }
+    return props.stocks;
 });
 
 const forms = ref(
@@ -54,16 +62,30 @@ const submit = (stockId: number) => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mb-6">
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Prise de stock</h1>
                             <p class="text-sm text-gray-500">
                                 Sélectionnez une fourniture à prendre
                             </p>
                         </div>
-                        <Link :href="route('welcome', { locationId: props.locationId })" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
-                            Retour
-                        </Link>
+                        <div class="flex gap-2">
+                            <Link
+                                :href="route('welcome', { 
+                                    locationId: props.locationId,
+                                    siteId: props.siteId
+                                })"
+                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                            >
+                                Retour
+                            </Link>
+                            <Link
+                                :href="route('welcome')"
+                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                            >
+                                Retour sans filtre
+                            </Link>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

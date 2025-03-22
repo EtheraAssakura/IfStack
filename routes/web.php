@@ -29,19 +29,17 @@ require __DIR__ . '/auth.php';
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', function () {
         $user = Auth::user();
-        $locationId = request()->query('location');
-
-        if (!$locationId && $user && $user->site_id) {
-            $location = \App\Models\Location::where('site_id', $user->site_id)->first();
-            if ($location) {
-                $locationId = $location->id;
-            }
-        }
+        $locationId = request()->query('locationId');
 
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
             'locationId' => $locationId,
+            'site' => $user->site ? [
+                'id' => $user->site_id,
+                'name' => $user->site->name,
+                'locations' => $user->site->locations()->select('id', 'name')->get()
+            ] : null
         ]);
     })->name('welcome');
 
