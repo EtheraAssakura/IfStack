@@ -354,13 +354,13 @@ const clearFilters = () => {
                         Détails
                       </Link>
                       <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
+                        <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <MoreVertical class="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem as-child>
+                          <DropdownMenuItem asChild>
                             <Link :href="route('fournitures.edit', fourniture.id)" class="flex items-center gap-2">
                               <Pencil class="h-4 w-4" />
                               Modifier

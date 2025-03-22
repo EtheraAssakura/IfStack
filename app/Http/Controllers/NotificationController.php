@@ -84,7 +84,7 @@ class NotificationController extends Controller
 
         if ($type === 'alert') {
             // Chercher une alerte
-            $alert = Alert::with(['stock.fourniture', 'user.site'])->find($id);
+            $alert = Alert::with(['stock.fourniture', 'stock.emplacement', 'user.site'])->find($id);
 
             if (!$alert) {
                 abort(404);
@@ -112,7 +112,13 @@ class NotificationController extends Controller
                     'name' => $alert->stock->fourniture->name,
                     'estimated_quantity' => $alert->stock->estimated_quantity,
                     'local_alert_threshold' => $alert->stock->local_alert_threshold,
-                    'processed' => $alert->processed
+                    'processed' => $alert->processed,
+                    'location' => [
+                        'name' => $alert->stock->emplacement->name,
+                        'site' => [
+                            'name' => $alert->stock->emplacement->etablissement->name ?? 'N/A'
+                        ]
+                    ]
                 ]
             ];
 
@@ -120,7 +126,7 @@ class NotificationController extends Controller
                 'notification' => $formattedAlert
             ]);
         } else {
-            // Chercher une notification de type demande
+            // Chercher une notification
             $notification = Notification::with('users.site')->find($id);
 
             if (!$notification) {

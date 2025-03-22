@@ -1,5 +1,5 @@
 <template>
-    <AppLayout title="Gestion des rôles">
+    <AppLayout :breadcrumbs="breadcrumbs" title="Gestion des rôles">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
@@ -133,10 +133,11 @@
 </template>
 
 <script setup lang="ts">
-import DangerButton from '@/Components/DangerButton.vue';
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
+import DangerButton from '@/components/DangerButton.vue';
+import Modal from '@/components/Modal.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType } from '@/types/BreadcrumbItemType';
 import { Link, useForm } from '@inertiajs/vue3';
 import { PencilIcon, PlusIcon, TrashIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -158,6 +159,13 @@ interface Role {
 const props = defineProps<{
     roles: Role[];
 }>();
+
+const breadcrumbs: BreadcrumbItemType[] = [
+    {
+        title: 'Rôles',
+        href: route('roles.index'),
+    },
+];
 
 const deleteModal = ref(false);
 const roleToDelete = ref<number | null>(null);

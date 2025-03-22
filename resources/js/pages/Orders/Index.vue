@@ -71,13 +71,13 @@
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div class="flex justify-end gap-2">
                         <DropdownMenu>
-                          <DropdownMenuTrigger as-child>
+                          <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" class="h-8 w-8">
                               <MoreVertical class="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem as-child>
+                            <DropdownMenuItem asChild>
                               <Link :href="route('orders.show', order.id)" class="flex items-center gap-2">
                                 <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -88,7 +88,7 @@
                             </DropdownMenuItem>
 
                             <template v-if="order.status === 'pending'">
-                              <DropdownMenuItem as-child>
+                              <DropdownMenuItem asChild>
                                 <Link :href="route('orders.edit', order.id)" class="flex items-center gap-2">
                                   <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />

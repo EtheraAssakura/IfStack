@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="Nouvel utilisateur">
+  <AppLayout :breadcrumbs="breadcrumbs" title="Nouvel utilisateur">
     <template #header>
       <h2 class="text-xl font-semibold leading-tight text-gray-800">
         Nouvel utilisateur
@@ -48,6 +48,18 @@
             </div>
 
             <div class="mb-6">
+              <InputLabel for="password_confirmation" value="Confirmer le mot de passe" />
+              <TextInput
+                id="password_confirmation"
+                v-model="form.password_confirmation"
+                type="password"
+                class="mt-1 block w-full"
+                required
+              />
+              <InputError :message="form.errors.password_confirmation" class="mt-2" />
+            </div>
+
+            <div class="mb-6">
               <InputLabel for="role" value="Rôle" />
               <select
                 id="role"
@@ -63,10 +75,25 @@
               <InputError :message="form.errors.role_id" class="mt-2" />
             </div>
 
+            <div class="mb-6">
+              <InputLabel for="site" value="Site" />
+              <select
+                id="site"
+                v-model="form.site_id"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              >
+                <option value="">Sélectionnez un site</option>
+                <option v-for="site in sites" :key="site.id" :value="site.id">
+                  {{ site.name }}
+                </option>
+              </select>
+              <InputError :message="form.errors.site_id" class="mt-2" />
+            </div>
+
             <div class="flex items-center gap-4">
               <PrimaryButton :disabled="form.processing">Créer</PrimaryButton>
               <Link
-                :href="route('utilisateurs.index')"
+                :href="route('users.index')"
                 class="rounded-md px-4 py-2 text-gray-600 hover:text-gray-900"
               >
                 Annuler
@@ -85,6 +112,7 @@ import InputLabel from '@/components/InputLabel.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType } from '@/types/BreadcrumbItemType';
 import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -92,16 +120,33 @@ const props = defineProps<{
     id: number;
     name: string;
   }[];
+  sites: {
+    id: number;
+    name: string;
+  }[];
 }>();
+
+const breadcrumbs: BreadcrumbItemType[] = [
+    {
+        title: 'Utilisateurs',
+        href: route('users.index'),
+    },
+    {
+        title: 'Nouvel utilisateur',
+        href: route('users.create'),
+    },
+];
 
 const form = useForm({
   name: '',
   email: '',
   password: '',
+  password_confirmation: '',
   role_id: '',
+  site_id: '',
 });
 
 const submit = () => {
-  form.post(route('utilisateurs.store'));
+  form.post(route('users.store'));
 };
 </script>

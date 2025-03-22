@@ -13,6 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('type'); // 'stock', 'orders', 'deliveries', 'usage'
+            $table->string('path'); // Chemin du fichier PDF
             $table->json('parameters'); // Paramètres utilisés pour générer le rapport
             $table->json('data'); // Données du rapport
             $table->foreignId('user_id')->constrained(); // Qui a généré le rapport

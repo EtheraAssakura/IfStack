@@ -58,7 +58,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Rapports',
-        href: route('rapports.consommation'),
+        href: route('reports.index'),
         icon: FileBarChart,
     },
 ];
@@ -66,7 +66,7 @@ const mainNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
     {
         title: 'Utilisateurs',
-        href: route('utilisateurs.index'),
+        href: route('users.index'),
         icon: Users,
     },
     {

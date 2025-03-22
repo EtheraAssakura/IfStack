@@ -24,6 +24,12 @@ interface Notification {
         estimated_quantity: number;
         local_alert_threshold: number;
         processed: boolean;
+        location: {
+            name: string;
+            site: {
+                name: string;
+            };
+        };
     };
 }
 
@@ -134,6 +140,14 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <div>
                                     <span class="font-medium text-gray-700">Fourniture :</span>
                                     <span class="ml-2 text-gray-600">{{ notification.stock.name }}</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Emplacement :</span>
+                                    <span class="ml-2 text-gray-600">{{ notification.stock.location.name }}</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Établissement :</span>
+                                    <span class="ml-2 text-gray-600">{{ notification.stock.location.site.name }}</span>
                                 </div>
                                 <div>
                                     <span class="font-medium text-gray-700">Quantité estimée :</span>

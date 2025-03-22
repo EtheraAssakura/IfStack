@@ -15,12 +15,7 @@ class User extends Authenticatable
         'firstname',
         'email',
         'password',
-        'role',
         'site_id',
-    ];
-
-    protected $attributes = [
-        'role' => '["user"]',
     ];
 
     protected $hidden = [
@@ -33,7 +28,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => 'array',
         ];
     }
 

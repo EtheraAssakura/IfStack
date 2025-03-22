@@ -8,7 +8,7 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\EtablissementController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\RapportController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
@@ -52,6 +52,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route pour la création de demandes
     Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
     Route::put('/notifications/{id}/process', [NotificationController::class, 'process'])->name('notifications.process');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
+    Route::get('/notifications/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+
+    // Admin routes
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('roles', RoleController::class);
+        Route::resource('categories', CategoryController::class);
+    });
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
@@ -112,34 +129,6 @@ Route::put('/etablissements/{etablissement}/locations/{location}', [LocationCont
 Route::post('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'update'])->name('etablissements.locations.update');
 Route::delete('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'destroy'])->name('etablissements.locations.destroy');
 Route::post('/etablissements/{etablissement}/locations/{location}/upload-photo', [LocationController::class, 'uploadPhoto'])->name('etablissements.locations.upload-photo');
-
-// Gestion des utilisateurs (restreint aux administrateurs)
-Route::get('/utilisateurs', [UserController::class, 'index'])->name('utilisateurs.index');
-Route::get('/utilisateurs/create', [UserController::class, 'create'])->name('utilisateurs.create');
-Route::post('/utilisateurs', [UserController::class, 'store'])->name('utilisateurs.store');
-Route::get('/utilisateurs/{user}/edit', [UserController::class, 'edit'])->name('utilisateurs.edit');
-Route::put('/utilisateurs/{user}', [UserController::class, 'update'])->name('utilisateurs.update');
-Route::delete('/utilisateurs/{user}', [UserController::class, 'destroy'])->name('utilisateurs.destroy');
-Route::post('/utilisateurs/{user}/role', [UserController::class, 'updateRole'])->name('utilisateurs.role');
-
-// Notifications
-Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
-Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
-Route::get('/notifications/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
-Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
-
-// Rapports
-Route::get('/rapports/consommation', [RapportController::class, 'consommation'])->name('rapports.consommation');
-Route::get('/rapports/top-produits', [RapportController::class, 'topProduits'])->name('rapports.top-produits');
-Route::get('/rapports/alertes', [RapportController::class, 'alertes'])->name('rapports.alertes');
-
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::resource('users', UserController::class);
-    Route::resource('roles', RoleController::class);
-    Route::resource('categories', CategoryController::class);
-});
 
 // Order routes
 Route::middleware(['auth'])->group(function () {

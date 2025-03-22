@@ -1,5 +1,5 @@
 <template>
-    <AppLayout title="Modifier le rôle">
+    <AppLayout :breadcrumbs="breadcrumbs" title="Modifier le rôle">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
@@ -84,6 +84,7 @@ import InputLabel from '@/components/InputLabel.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType } from '@/types/BreadcrumbItemType';
 import { Link, useForm } from '@inertiajs/vue3';
 
 interface Permission {
@@ -103,6 +104,17 @@ const props = defineProps<{
     role: Role;
     permissions: Permission[];
 }>();
+
+const breadcrumbs: BreadcrumbItemType[] = [
+    {
+        title: 'Rôles',
+        href: route('roles.index'),
+    },
+    {
+        title: 'Modifier',
+        href: route('roles.edit', props.role.id),
+    },
+];
 
 const form = useForm({
     name: props.role.name,

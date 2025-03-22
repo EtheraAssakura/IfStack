@@ -9,14 +9,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     public function index()
     {
+        $users = User::with('roles')->get();
+        $totalUsers = User::count();
+
         return Inertia::render('Users/Index', [
-            'users' => User::with(['roles', 'site'])->get(),
-            'roles' => Role::all(),
+            'users' => $users,
+            'totalUsers' => $totalUsers
         ]);
     }
 
@@ -35,7 +39,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => ['required', Password::defaults()],
+            'password' => ['required', 'string', Password::min(8), 'confirmed'],
             'role_id' => 'required|exists:roles,id',
             'site_id' => 'nullable|exists:sites,id',
         ]);
@@ -49,8 +53,7 @@ class UserController extends Controller
 
         $user->roles()->attach($validated['role_id']);
 
-        return redirect()->route('utilisateurs.index')
-            ->with('success', 'Utilisateur créé avec succès.');
+        return redirect()->route('users.index');
     }
 
     public function edit(User $user)
@@ -69,7 +72,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => $request->filled('password') ? ['required', Password::defaults()] : '',
+            'password' => 'nullable|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
             'site_id' => 'nullable|exists:sites,id',
         ]);
@@ -80,7 +83,7 @@ class UserController extends Controller
             'site_id' => $validated['site_id'],
         ]);
 
-        if ($request->filled('password')) {
+        if (isset($validated['password'])) {
             $user->update([
                 'password' => Hash::make($validated['password']),
             ]);
@@ -88,14 +91,14 @@ class UserController extends Controller
 
         $user->roles()->sync([$validated['role_id']]);
 
-        return redirect()->route('utilisateurs.index')
+        return redirect()->route('users.index')
             ->with('success', 'Utilisateur mis à jour avec succès.');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('utilisateurs.index')
+        return redirect()->route('users.index')
             ->with('success', 'Utilisateur supprimé avec succès.');
     }
 

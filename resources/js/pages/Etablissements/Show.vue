@@ -283,13 +283,13 @@ const initEditForm = (emplacement: Emplacement) => {
                                         <h3 class="text-base font-medium text-gray-900">{{ emplacement.name }}</h3>
                                         <div class="flex items-center gap-2">
                                             <DropdownMenu>
-                                                <DropdownMenuTrigger as-child>
+                                                <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" class="h-8 w-8">
                                                         <MoreVertical class="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem as-child>
+                                                    <DropdownMenuItem asChild>
                                                         <button 
                                                             class="flex w-full items-center gap-2"
                                                             @click="initEditForm(emplacement)"

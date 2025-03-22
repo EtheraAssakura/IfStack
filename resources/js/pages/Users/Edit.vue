@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="`Modifier ${user.name}`">
+  <AppLayout :title="`Modifier ${user.name}`" :breadcrumbs="breadcrumbs">
     <template #header>
       <h2 class="text-xl font-semibold leading-tight text-gray-800">
         Modifier {{ user.name }}
@@ -83,7 +83,7 @@
             <div class="flex items-center gap-4">
               <PrimaryButton :disabled="form.processing">Enregistrer</PrimaryButton>
               <Link
-                :href="route('utilisateurs.index')"
+                :href="route('users.index')"
                 class="rounded-md px-4 py-2 text-gray-600 hover:text-gray-900"
               >
                 Annuler
@@ -102,6 +102,7 @@ import InputLabel from '@/components/InputLabel.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType } from '@/types/BreadcrumbItemType';
 import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -128,6 +129,17 @@ const props = defineProps<{
   }[];
 }>();
 
+const breadcrumbs: BreadcrumbItemType[] = [
+    {
+        title: 'Utilisateurs',
+        href: route('users.index'),
+    },
+    {
+        title: 'Modifier',
+        href: route('users.edit', props.user.id),
+    },
+];
+
 const form = useForm({
   name: props.user.name,
   email: props.user.email,
@@ -137,6 +149,6 @@ const form = useForm({
 });
 
 const submit = () => {
-  form.put(route('utilisateurs.update', props.user.id));
+  form.put(route('users.update', props.user.id));
 };
 </script>

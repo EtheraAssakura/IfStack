@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Report;
+use Carbon\Carbon;
 
 class ReportingSeeder extends Seeder
 {
@@ -77,26 +79,23 @@ class ReportingSeeder extends Seeder
         ]);
 
         // Rapports
-        DB::table('reports')->insert([
-            [
-                'name' => 'Rapport trimestriel des stocks Q1 2024',
-                'type' => 'stock',
-                'parameters' => json_encode([
-                    'period' => 'Q1',
-                    'year' => 2024,
-                    'sites' => ['ISFAC Poitiers', 'ISFAC Niort']
-                ]),
-                'data' => json_encode([
-                    'total_value' => 15000.00,
-                    'low_stock_items' => 5,
-                    'overstock_items' => 3
-                ]),
-                'user_id' => DB::table('users')->where('email', 'celine.dupuis@isfac.fr')->value('id'),
-                'site_id' => null,
-                'generated_at' => '2024-03-31 23:59:59',
-                'created_at' => now(),
-                'updated_at' => now(),
+        Report::create([
+            'name' => 'Rapport trimestriel des stocks Q1 2024',
+            'type' => 'stock',
+            'path' => 'reports/stock-report-2024-Q1.pdf',
+            'parameters' => [
+                'period' => 'Q1',
+                'year' => 2024,
+                'sites' => ['ISFAC Poitiers', 'ISFAC Niort']
             ],
+            'data' => [
+                'total_value' => 15000,
+                'low_stock_items' => 5,
+                'overstock_items' => 3
+            ],
+            'user_id' => 1,
+            'site_id' => null,
+            'generated_at' => Carbon::create(2024, 3, 31, 23, 59, 59)
         ]);
     }
 }

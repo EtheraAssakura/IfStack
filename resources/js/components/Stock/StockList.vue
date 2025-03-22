@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import PrimaryButton from '@/components/PrimaryButton.vue';
 import SecondaryButton from '@/components/SecondaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from '@inertiajs/vue3';
+import { MoreVertical, Pencil, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 defineOptions({
@@ -34,6 +35,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'transfer', stock: any): void;
     (e: 'edit', stock: any): void;
+    (e: 'delete', stock: any): void;
 }>();
 
 const search = ref('');
@@ -114,19 +116,31 @@ const filteredStocks = computed(() => {
                             {{ stock.local_alert_threshold || '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <SecondaryButton
-                                v-if="showTakeButton"
-                                class="mr-2"
-                                @click="$emit('transfer', stock)"
-                            >
-                                Prendre
-                            </SecondaryButton>
-                            <PrimaryButton
-                                v-if="!showTakeButton"
-                                @click="$emit('edit', stock)"
-                            >
-                                Ajuster
-                            </PrimaryButton>
+                            <div class="flex justify-end gap-2">
+                                <SecondaryButton
+                                    v-if="showTakeButton"
+                                    @click="$emit('transfer', stock)"
+                                >
+                                    Prendre
+                                </SecondaryButton>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <MoreVertical class="h-5 w-5" />
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem @click="$emit('edit', stock)" class="flex items-center gap-2">
+                                            <Pencil class="h-4 w-4" />
+                                            Modifier
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem @click="$emit('delete', stock)" class="text-red-500 focus:text-red-500 flex items-center gap-2">
+                                            <Trash2 class="h-4 w-4" />
+                                            Supprimer
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
