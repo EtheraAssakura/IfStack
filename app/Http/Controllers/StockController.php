@@ -239,7 +239,7 @@ class StockController extends Controller
           return [
             'id' => $alerte->id,
             'type' => $alerte->type === 'rupture' ? 'rupture' : 'seuil_atteint',
-            'message' => $alerte->commentaire,
+            'message' => $alerte->comment,
             'created_at' => $alerte->created_at,
           ];
         }),
@@ -278,7 +278,7 @@ class StockController extends Controller
           'stock_id' => $stock->id,
           'user_id' => $user->id,
           'type' => 'seuil_atteint',
-          'commentaire' => 'Le stock est passé sous le seuil d\'alerte local',
+          'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} à {$stock->emplacement->etablissement->name} est en alerte (quantité : {$stock->estimated_quantity} seuil d'alerte : {$stock->local_alert_threshold})",
         ]);
       }
 
@@ -300,7 +300,7 @@ class StockController extends Controller
         'stock_id' => $stock->id,
         'user_id' => $user->id,
         'type' => 'seuil_atteint',
-        'commentaire' => 'Le stock est passé sous le seuil d\'alerte local',
+        'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} à {$stock->emplacement->etablissement->name} est en alerte (quantité : {$stock->estimated_quantity} seuil d'alerte : {$stock->local_alert_threshold})",
       ]);
     }
 
@@ -328,7 +328,7 @@ class StockController extends Controller
       'stock_id' => $stock->id,
       'user_id' => Auth::id(),
       'type' => 'rupture',
-      'commentaire' => $validated['commentaire'] ?? 'Rupture de stock signalée',
+      'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} est en rupture de stock" . ($validated['commentaire'] ? " - {$validated['commentaire']}" : ""),
     ]);
 
     return redirect()->back()
