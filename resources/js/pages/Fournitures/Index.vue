@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { MoreVertical, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { ChevronDown, MoreVertical, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Props {
@@ -62,12 +63,25 @@ const deleteFourniture = (id: number) => {
 
 const searchQuery = ref('');
 const selectedCategory = ref('');
+const selectedFournisseur = ref('');
+const sortBy = ref('');
+const sortDirection = ref<'asc' | 'desc'>('asc');
 const itemsPerPage = ref(10);
 const currentPage = ref(1);
 
 const categories = computed(() => {
   const uniqueCategories = new Set(props.fournitures.map(f => f.category.name));
   return Array.from(uniqueCategories).sort();
+});
+
+const fournisseurs = computed(() => {
+  const uniqueFournisseurs = new Set<string>();
+  props.fournitures.forEach(fourniture => {
+    fourniture.fournisseurs.forEach(fournisseur => {
+      uniqueFournisseurs.add(fournisseur.name);
+    });
+  });
+  return Array.from(uniqueFournisseurs).sort();
 });
 
 const filteredFournitures = computed(() => {
@@ -84,6 +98,40 @@ const filteredFournitures = computed(() => {
     filtered = filtered.filter(fourniture => 
       fourniture.category.name === selectedCategory.value
     );
+  }
+
+  if (selectedFournisseur.value) {
+    filtered = filtered.filter(fourniture =>
+      fourniture.fournisseurs.some(f => f.name === selectedFournisseur.value)
+    );
+  }
+
+  if (sortBy.value) {
+    filtered.sort((a, b) => {
+      let valueA, valueB;
+      switch (sortBy.value) {
+        case 'reference':
+          valueA = a.reference;
+          valueB = b.reference;
+          break;
+        case 'name':
+          valueA = a.name;
+          valueB = b.name;
+          break;
+        case 'category':
+          valueA = a.category.name;
+          valueB = b.category.name;
+          break;
+        case 'packaging':
+          valueA = a.packaging;
+          valueB = b.packaging;
+          break;
+        default:
+          return 0;
+      }
+      const comparison = valueA.localeCompare(valueB);
+      return sortDirection.value === 'asc' ? comparison : -comparison;
+    });
   }
   
   return filtered;
@@ -111,6 +159,14 @@ const changeItemsPerPage = (event: Event) => {
   }
 };
 
+const clearFilters = () => {
+  searchQuery.value = '';
+  selectedCategory.value = '';
+  selectedFournisseur.value = '';
+  sortBy.value = '';
+  sortDirection.value = 'asc';
+};
+
 </script>
 
 <template>
@@ -132,7 +188,7 @@ const changeItemsPerPage = (event: Event) => {
         </div>
 
         <div class="mb-6">
-          <div class="flex gap-4">
+          <div class="flex flex-col gap-4">
             <div class="relative flex-1">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search class="h-5 w-5 text-gray-400" />
@@ -144,15 +200,24 @@ const changeItemsPerPage = (event: Event) => {
                 placeholder="Rechercher par référence ou nom..."
               />
             </div>
-            <select
-              v-model="selectedCategory"
-              class="block w-64 px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="">Toutes les catégories</option>
-              <option v-for="category in categories" :key="category" :value="category">
-                {{ category }}
-              </option>
-            </select>
+            <div v-if="searchQuery || selectedCategory || selectedFournisseur" class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm text-gray-500">Filtres actifs :</span>
+              <Badge v-if="searchQuery" variant="secondary" class="flex items-center gap-1">
+                Recherche: {{ searchQuery }}
+                <button @click="searchQuery = ''" class="ml-1 hover:text-gray-700">×</button>
+              </Badge>
+              <Badge v-if="selectedCategory" variant="secondary" class="flex items-center gap-1">
+                Catégorie: {{ selectedCategory }}
+                <button @click="selectedCategory = ''" class="ml-1 hover:text-gray-700">×</button>
+              </Badge>
+              <Badge v-if="selectedFournisseur" variant="secondary" class="flex items-center gap-1">
+                Fournisseur: {{ selectedFournisseur }}
+                <button @click="selectedFournisseur = ''" class="ml-1 hover:text-gray-700">×</button>
+              </Badge>
+              <Button variant="ghost" size="sm" @click="clearFilters" class="ml-2">
+                Réinitialiser tous les filtres
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -166,19 +231,84 @@ const changeItemsPerPage = (event: Event) => {
               <thead class="bg-gray-50/50">
                 <tr>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Référence
+                    <DropdownMenu>
+                      <DropdownMenuTrigger class="flex items-center gap-1 hover:text-gray-700">
+                        Référence
+                        <ChevronDown class="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem @click="sortBy = 'reference'; sortDirection = 'asc'">
+                          Trier par référence (A-Z)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="sortBy = 'reference'; sortDirection = 'desc'">
+                          Trier par référence (Z-A)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Nom
+                    <DropdownMenu>
+                      <DropdownMenuTrigger class="flex items-center gap-1 hover:text-gray-700">
+                        Nom
+                        <ChevronDown class="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem @click="sortBy = 'name'; sortDirection = 'asc'">
+                          Trier par nom (A-Z)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="sortBy = 'name'; sortDirection = 'desc'">
+                          Trier par nom (Z-A)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Catégorie
+                    <DropdownMenu>
+                      <DropdownMenuTrigger class="flex items-center gap-1 hover:text-gray-700">
+                        Catégorie
+                        <ChevronDown class="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem @click="sortBy = 'category'; sortDirection = 'asc'">
+                          Trier par catégorie (A-Z)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="sortBy = 'category'; sortDirection = 'desc'">
+                          Trier par catégorie (Z-A)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem v-for="category in categories" :key="category" @click="selectedCategory = category">
+                          {{ category }}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Conditionnement
+                    <DropdownMenu>
+                      <DropdownMenuTrigger class="flex items-center gap-1 hover:text-gray-700">
+                        Conditionnement
+                        <ChevronDown class="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem @click="sortBy = 'packaging'; sortDirection = 'asc'">
+                          Trier par conditionnement (A-Z)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="sortBy = 'packaging'; sortDirection = 'desc'">
+                          Trier par conditionnement (Z-A)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Fournisseurs
+                    <DropdownMenu>
+                      <DropdownMenuTrigger class="flex items-center gap-1 hover:text-gray-700">
+                        Fournisseurs
+                        <ChevronDown class="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem v-for="fournisseur in fournisseurs" :key="fournisseur" @click="selectedFournisseur = fournisseur">
+                          {{ fournisseur }}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </th>
                   <th scope="col" class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 text-right">
                     Actions
