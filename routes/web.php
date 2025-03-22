@@ -51,9 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/stock/take/{stock}', [StockController::class, 'takeStock'])->name('stock.take.submit');
 
     // Route pour la création de demandes
-    Route::get('/requests/create', function () {
-        return Inertia::render('Requests/Create');
-    })->name('requests.create');
+    Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
@@ -126,6 +124,9 @@ Route::post('/utilisateurs/{user}/role', [UserController::class, 'updateRole'])-
 
 // Notifications
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
+Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
+Route::get('/notifications/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
 Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
 

@@ -37,7 +37,7 @@ const handleLogout = () => {
                     </Link>
                     <Link
                         v-if="!isAdmin"
-                        :href="route('requests.create')"
+                        :href="route('notifications.create')"
                         class="w-full py-3 bg-transparent border-2 border-white text-white rounded-full font-medium transition-all hover:bg-white/10"
                     >
                         Je veux faire une demande

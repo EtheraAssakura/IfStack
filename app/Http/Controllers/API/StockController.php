@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\StockItem;
 use App\Models\StockMovement;
+use App\Models\Alerte;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,8 @@ class StockController extends Controller
         ]);
 
         DB::transaction(function () use ($stockItem, $validated, $request) {
+            $previousQuantity = $stockItem->estimated_quantity;
+
             // Créer un mouvement de stock
             StockMovement::create([
                 'supply_id' => $stockItem->supply_id,
@@ -47,6 +50,16 @@ class StockController extends Controller
 
             // Mettre à jour le stock
             $stockItem->update($validated);
+
+            // Vérifier si la quantité est passée sous le seuil d'alerte
+            if ($stockItem->estimated_quantity <= $stockItem->local_alert_threshold && $previousQuantity > $stockItem->local_alert_threshold) {
+                Alerte::create([
+                    'stock_id' => $stockItem->id,
+                    'user_id' => $request->user()->id,
+                    'type' => 'seuil_atteint',
+                    'commentaire' => 'Le stock est passé sous le seuil d\'alerte local',
+                ]);
+            }
         });
 
         return response()->json($stockItem);

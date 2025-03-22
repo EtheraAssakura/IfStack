@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Site;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -14,7 +15,7 @@ class UserController extends Controller
     public function index()
     {
         return Inertia::render('Users/Index', [
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'site'])->get(),
             'roles' => Role::all(),
         ]);
     }
@@ -22,8 +23,10 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
+        $sites = Site::all();
         return Inertia::render('Users/Create', [
             'roles' => $roles,
+            'sites' => $sites,
         ]);
     }
 
@@ -34,12 +37,14 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', Password::defaults()],
             'role_id' => 'required|exists:roles,id',
+            'site_id' => 'nullable|exists:sites,id',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'site_id' => $validated['site_id'],
         ]);
 
         $user->roles()->attach($validated['role_id']);
@@ -51,9 +56,11 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
+        $sites = Site::all();
         return Inertia::render('Users/Edit', [
-            'user' => $user->load('roles'),
+            'user' => $user->load(['roles', 'site']),
             'roles' => $roles,
+            'sites' => $sites,
         ]);
     }
 
@@ -64,11 +71,13 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => $request->filled('password') ? ['required', Password::defaults()] : '',
             'role_id' => 'required|exists:roles,id',
+            'site_id' => 'nullable|exists:sites,id',
         ]);
 
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'site_id' => $validated['site_id'],
         ]);
 
         if ($request->filled('password')) {

@@ -10,7 +10,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('requests.store'), {
+    form.post(route('notifications.store'), {
         onSuccess: () => {
             form.reset();
         },

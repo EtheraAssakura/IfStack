@@ -52,7 +52,7 @@ const mainNavItems: NavItem[] = [
     //     icon: Truck,
     // },
     {
-        title: 'Alertes',
+        title: 'Notifications',
         href: route('notifications.index'),
         icon: Bell,
     },

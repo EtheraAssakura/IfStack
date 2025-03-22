@@ -65,6 +65,21 @@
               <InputError :message="form.errors.role_id" class="mt-2" />
             </div>
 
+            <div class="mb-6">
+              <InputLabel for="site" value="Site" />
+              <select
+                id="site"
+                v-model="form.site_id"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              >
+                <option value="">Sélectionnez un établissement</option>
+                <option v-for="site in sites" :key="site.id" :value="site.id">
+                  {{ site.name }}
+                </option>
+              </select>
+              <InputError :message="form.errors.site_id" class="mt-2" />
+            </div>
+
             <div class="flex items-center gap-4">
               <PrimaryButton :disabled="form.processing">Enregistrer</PrimaryButton>
               <Link
@@ -98,8 +113,16 @@ const props = defineProps<{
       id: number;
       name: string;
     }[];
+    site?: {
+      id: number;
+      name: string;
+    };
   };
   roles: {
+    id: number;
+    name: string;
+  }[];
+  sites: {
     id: number;
     name: string;
   }[];
@@ -110,6 +133,7 @@ const form = useForm({
   email: props.user.email,
   password: '',
   role_id: props.user.roles[0]?.id || '',
+  site_id: props.user.site?.id || '',
 });
 
 const submit = () => {

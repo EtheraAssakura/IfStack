@@ -269,7 +269,18 @@ class StockController extends Controller
         'estimated_quantity' => 'required|numeric|min:0',
       ]);
 
+      $previousQuantity = $stock->estimated_quantity;
       $stock->update($validated);
+
+      // Vérifier si la quantité est passée sous le seuil d'alerte
+      if ($stock->estimated_quantity <= $stock->local_alert_threshold && $previousQuantity > $stock->local_alert_threshold) {
+        Alerte::create([
+          'stock_id' => $stock->id,
+          'user_id' => $user->id,
+          'type' => 'seuil_atteint',
+          'commentaire' => 'Le stock est passé sous le seuil d\'alerte local',
+        ]);
+      }
 
       return redirect()->back()->with('success', 'Quantité mise à jour avec succès.');
     }
@@ -280,7 +291,18 @@ class StockController extends Controller
       'local_alert_threshold' => 'required|numeric|min:0',
     ]);
 
+    $previousQuantity = $stock->estimated_quantity;
     $stock->update($validated);
+
+    // Vérifier si la quantité est passée sous le seuil d'alerte
+    if ($stock->estimated_quantity <= $stock->local_alert_threshold && $previousQuantity > $stock->local_alert_threshold) {
+      Alerte::create([
+        'stock_id' => $stock->id,
+        'user_id' => $user->id,
+        'type' => 'seuil_atteint',
+        'commentaire' => 'Le stock est passé sous le seuil d\'alerte local',
+      ]);
+    }
 
     return redirect()->back()->with('success', 'Stock mis à jour avec succès.');
   }

@@ -156,11 +156,7 @@ const stocksEnAlerte = computed(() => {
                                             size="sm"
                                             as-child
                                         >
-                                            <Link :href="route('commandes.create', { 
-                                                fourniture_id: stock.supply.id,
-                                                emplacement_id: stock.location.id,
-                                                site: stock.location.site.name
-                                            })">
+                                            <Link :href="route('orders.create')">
                                                 Commander
                                             </Link>
                                         </Button>

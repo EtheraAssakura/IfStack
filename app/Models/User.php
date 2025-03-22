@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'site_id',
     ];
 
     protected $attributes = [
@@ -49,5 +50,10 @@ class User extends Authenticatable
     public function hasPermission($permission)
     {
         return $this->roles()->whereJsonContains('permissions', $permission)->exists();
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(Site::class);
     }
 }
