@@ -152,7 +152,7 @@ class LocationController extends Controller
         }
 
         // Générer l'URL pour le QR code
-        $url = route('welcome', ['location' => $location->id]);
+        $url = route('welcome', ['locationId' => $location->id]);
         $qrCodePath = 'qrcodes/location_' . $location->id . '.svg';
         $qrCodeUrl = $this->generateQrCode($url, $qrCodePath);
 

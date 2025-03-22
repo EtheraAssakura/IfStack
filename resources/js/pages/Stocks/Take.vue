@@ -29,9 +29,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
 ];
 
 const filteredStocks = computed(() => {
-    if (props.siteId) {
-        return props.stocks.filter(stock => stock.location.site.id === Number(props.siteId));
-    }
+    
     if (props.locationId) {
         return props.stocks.filter(stock => stock.location.id === Number(props.locationId));
     }
@@ -72,8 +70,7 @@ const submit = (stockId: number) => {
                         <div class="flex gap-2">
                             <Link
                                 :href="route('welcome', { 
-                                    locationId: props.locationId,
-                                    siteId: props.siteId
+                                    locationId: props.locationId
                                 })"
                                 class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
                             >
@@ -83,7 +80,7 @@ const submit = (stockId: number) => {
                                 :href="route('welcome')"
                                 class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
                             >
-                                Retour sans filtre
+                                Mauvais emplacement
                             </Link>
                         </div>
                     </div>

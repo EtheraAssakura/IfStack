@@ -13,6 +13,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -27,21 +28,7 @@ require __DIR__ . '/auth.php';
 */
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/', function () {
-        $user = Auth::user();
-        $locationId = request()->query('locationId');
-
-        return Inertia::render('Welcome', [
-            'canLogin' => Route::has('login'),
-            'canRegister' => Route::has('register'),
-            'locationId' => $locationId,
-            'site' => $user->site ? [
-                'id' => $user->site_id,
-                'name' => $user->site->name,
-                'locations' => $user->site->locations()->select('id', 'name')->get()
-            ] : null
-        ]);
-    })->name('welcome');
+    Route::get('/', [HomeController::class, 'index'])->name('welcome');
 
     // Route pour la prise de fournitures
     Route::get('/stock/take', [StockController::class, 'take'])->name('stock.take');
@@ -67,6 +54,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('roles', RoleController::class);
         Route::resource('categories', CategoryController::class);
     });
+
+    // Routes API pour les sites
+    Route::get('/api/sites', [EtablissementController::class, 'apiIndex'])->name('api.sites.index');
+    Route::get('/api/sites/{site}', [EtablissementController::class, 'apiShow'])->name('api.sites.show');
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {

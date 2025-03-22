@@ -2,32 +2,32 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
+
+interface Location {
+    id: number;
+    name: string;
+}
+
+interface Site {
+    id: number;
+    name: string;
+    locations: Location[];
+}
+
+const props = withDefaults(defineProps<{
+    locationId?: number;
+    site?: Site;
+}>(), {
+    locationId: undefined,
+    site: undefined
+});
 
 const page = usePage();
 const isAdmin = page.props.auth.user?.roles?.some(role => role.name === 'Administrateur');
 const showLocationModal = ref(false);
-console.log('User roles:', page.props.auth.user?.roles);
-console.log('Is admin:', isAdmin);
 
-const props = defineProps<{
-    locationId?: number;
-    site?: {
-        id: number;
-        name: string;
-        locations: Array<{
-            id: number;
-            name: string;
-        }>;
-    };
-}>();
 
-const locationId = computed(() => {
-    if (props.locationId) {
-        return props.locationId;
-    }
-    return props.site?.id;
-});
 
 const handleLogout = () => {
     router.post(route('logout'));
@@ -48,7 +48,7 @@ const selectLocation = (locationId: number) => {
 </script>
 
 <template>
-    <Head title="Welcome to IfStack" />
+    <Head title="Bienvenue sur IfStack" />
 
     <div class="min-h-screen bg-gradient-to-br from-[#023048] to-[#034268]">
         <main class="relative min-h-screen flex flex-col items-center justify-center px-4">
@@ -65,7 +65,7 @@ const selectLocation = (locationId: number) => {
                         @click="handleTakeStock"
                         class="w-full py-3 bg-transparent border-2 border-white text-white rounded-full font-medium transition-all hover:bg-white/10 text-base"
                     >
-                        J'ai pris une fourniture
+                        {{ locationId ? "J'ai pris une fourniture" : "J'ai pris une fourniture (choisir l'emplacement)" }}
                     </button>
                     
                     <Link
@@ -101,6 +101,9 @@ const selectLocation = (locationId: number) => {
                     <DialogTitle>Sélectionnez l'emplacement</DialogTitle>
                 </DialogHeader>
                 <div class="grid grid-cols-1 gap-2 mt-4">
+                    <div v-if="!site?.locations?.length" class="text-center text-gray-500">
+                        Aucun emplacement disponible
+                    </div>
                     <Button
                         v-for="location in site?.locations"
                         :key="location.id"

@@ -154,4 +154,24 @@ class EtablissementController extends Controller
         return redirect()->route('etablissements.show', $etablissement)
             ->with('success', 'Plan mis à jour avec succès.');
     }
+
+    public function apiIndex()
+    {
+        $sites = Etablissement::select('id', 'name')
+            ->with(['locations' => function ($query) {
+                $query->select('id', 'name', 'etablissement_id');
+            }])
+            ->get();
+
+        return response()->json($sites);
+    }
+
+    public function apiShow(Etablissement $site)
+    {
+        $site->load(['locations' => function ($query) {
+            $query->select('id', 'name', 'etablissement_id');
+        }]);
+
+        return response()->json($site);
+    }
 }
