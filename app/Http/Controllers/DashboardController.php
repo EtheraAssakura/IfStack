@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Supply;
 use App\Models\Delivery;
 use App\Models\StockItem;
+use App\Models\Notification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -59,6 +60,11 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $pendingRequests = Notification::where('type', 'request')
+            ->where('is_read', false)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         // Livraisons de la semaine
         $weekDeliveries = Delivery::with(['order', 'user', 'items.location.site'])
             ->whereBetween('expected_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
@@ -81,6 +87,7 @@ class DashboardController extends Controller
             'pending_orders' => Order::where('status', 'pending')->count(),
             'planned_deliveries' => Delivery::where('status', 'planned')->count(),
             'unhandled_alerts' => $unhandledAlerts->count(),
+            'pending_requests' => $pendingRequests->count(),
         ];
 
         // Commandes par mois

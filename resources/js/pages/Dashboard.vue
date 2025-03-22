@@ -68,6 +68,7 @@ interface Props {
         pending_orders: number;
         planned_deliveries: number;
         unhandled_alerts: number;
+        pending_requests: number;
     };
     ordersByMonth: Array<{
         month: string;
@@ -111,7 +112,7 @@ const stocksEnAlerte = computed(() => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <!-- Statistiques -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Fournitures</h3>
                         <p class="text-3xl font-bold text-indigo-600">{{ stats.total_supplies }}</p>
@@ -123,6 +124,10 @@ const stocksEnAlerte = computed(() => {
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Alertes non traitées</h3>
                         <p class="text-3xl font-bold text-red-600">{{ stats.unhandled_alerts }}</p>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Demandes en cours</h3>
+                        <p class="text-3xl font-bold text-indigo-600">{{ stats.pending_requests }}</p>
                     </div>
                 </div>
 
