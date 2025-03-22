@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { onMounted } from 'vue';
+import { Search } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 
 interface Stock {
     id: number;
@@ -31,6 +32,28 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const searchQuery = ref('');
+
+const filteredStocks = computed(() => {
+    if (!searchQuery.value) return props.stocks;
+
+    const query = searchQuery.value.toLowerCase();
+    const filtered: Record<string, Stock[]> = {};
+
+    Object.entries(props.stocks).forEach(([etablissement, stocks]) => {
+        const filteredStocks = stocks.filter(stock => 
+            stock.fourniture.name.toLowerCase().includes(query) ||
+            stock.fourniture.reference.toLowerCase().includes(query) ||
+            stock.emplacement.name.toLowerCase().includes(query)
+        );
+
+        if (filteredStocks.length > 0) {
+            filtered[etablissement] = filteredStocks;
+        }
+    });
+
+    return filtered;
+});
 
 onMounted(() => {
     console.log('Données reçues:', {
@@ -62,7 +85,18 @@ const getBadgeText = (stock: Stock) => {
 };
 
 const getStockValue = (stock: Stock, path: string) => {
-    return path.split('.').reduce((obj, key) => obj?.[key], stock) ?? '-';
+    const keys = path.split('.');
+    let value: any = stock;
+    
+    for (const key of keys) {
+        if (value && typeof value === 'object') {
+            value = value[key as keyof typeof value];
+        } else {
+            return '-';
+        }
+    }
+    
+    return value ?? '-';
 };
 </script>
 
@@ -100,13 +134,27 @@ const getStockValue = (stock: Stock, path: string) => {
                     </div>
                 </div>
 
-                <div v-if="Object.keys(stocks).length === 0" class="text-center py-12">
+                <div class="mb-6">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search class="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            placeholder="Rechercher par nom de fourniture, emplacement ou référence..."
+                        />
+                    </div>
+                </div>
+
+                <div v-if="Object.keys(filteredStocks).length === 0" class="text-center py-12">
                     <p class="text-gray-500">Aucun stock trouvé pour ce site.</p>
                     <p class="text-sm text-gray-400 mt-2">Site sélectionné : {{ site }}</p>
                 </div>
 
                 <div v-else class="space-y-6">
-                    <div v-for="(stocks, etablissement) in props.stocks" :key="etablissement" class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                    <div v-for="(stocks, etablissement) in filteredStocks" :key="etablissement" class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                         <div class="p-6">
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">

@@ -169,12 +169,20 @@ class StockController extends Controller
       $query->whereHas('emplacement.etablissement', function ($q) use ($site) {
         $q->where('slug', 'isfac-' . $site);
       });
+    }
 
-      // Ajout d'un log pour voir la requête SQL générée
-      Log::info('Requête SQL', [
-        'sql' => $query->toSql(),
-        'bindings' => $query->getBindings()
-      ]);
+    // Ajout de la recherche
+    if ($request->has('search')) {
+      $search = $request->get('search');
+      $query->where(function ($q) use ($search) {
+        $q->whereHas('fourniture', function ($q) use ($search) {
+          $q->where('name', 'like', "%{$search}%")
+            ->orWhere('reference', 'like', "%{$search}%");
+        })
+          ->orWhereHas('emplacement', function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%");
+          });
+      });
     }
 
     $stocks = $query->get();
