@@ -31,6 +31,12 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        if ($request->boolean('remember')) {
+            config(['session.lifetime' => 20160]); // 2 semaines en minutes
+        } else {
+            config(['session.lifetime' => 120]); // 2 heures en minutes
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended('/');
