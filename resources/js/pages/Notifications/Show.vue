@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
-import { defineProps } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { defineProps, ref } from 'vue';
 
 interface Notification {
     id: number;
@@ -23,12 +23,50 @@ interface Notification {
         name: string;
         estimated_quantity: number;
         local_alert_threshold: number;
+        processed: boolean;
     };
 }
 
 const props = defineProps<{
     notification: Notification;
 }>();
+
+const isProcessed = ref(props.notification.type === 'alert' ? props.notification.stock?.processed : props.notification.is_read);
+const showSuccessModal = ref(false);
+
+const handleProcessChange = () => {
+    const currentValue = props.notification.type === 'alert' ? props.notification.stock?.processed : props.notification.is_read;
+    const newValue = !currentValue;
+    
+    console.log('Current value from notification:', currentValue);
+    console.log('New value to send:', newValue);
+    
+    router.put(route('notifications.process', [props.notification.id, { type: props.notification.type }]), {
+        processed: newValue
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            isProcessed.value = newValue;
+            if (props.notification.type === 'alert' && props.notification.stock) {
+                props.notification.stock.processed = newValue;
+            } else {
+                props.notification.is_read = newValue;
+            }
+            
+            showSuccessModal.value = true;
+            setTimeout(() => {
+                showSuccessModal.value = false;
+            }, 1000);
+        },
+        onError: (errors) => {
+            console.error('Error updating notification:', errors);
+        }
+    });
+};
+
+const closeModal = () => {
+    showSuccessModal.value = false;
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -51,6 +89,31 @@ const breadcrumbs: BreadcrumbItem[] = [
                 Détails de la notification
             </h2>
         </template>
+
+        <!-- Modale de succès -->
+        <Transition
+            enter-active-class="transition ease-out duration-200"
+            enter-from-class="transform opacity-0 scale-95"
+            enter-to-class="transform opacity-100 scale-100"
+            leave-active-class="transition ease-in duration-100"
+            leave-from-class="transform opacity-100 scale-100"
+            leave-to-class="transform opacity-0 scale-95"
+        >
+            <div v-if="showSuccessModal" class="fixed inset-0 flex items-center justify-center z-50" @click="closeModal">
+                <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto" @click.stop>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="text-gray-900">
+                            La notification a été mise à jour avec succès
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Transition>
 
         <div class="py-12">
             <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
@@ -84,7 +147,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </div>
 
                         <div class="border-t pt-6">
-                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Informations du demandeur</h4>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Informations de l'utilisateur</h4>
                             <div class="grid grid-cols-1 gap-4">
                                 <div>
                                     <span class="font-medium text-gray-700">Nom :</span>
@@ -101,7 +164,19 @@ const breadcrumbs: BreadcrumbItem[] = [
                             </div>
                         </div>
 
-                        <div class="mt-6 flex justify-end">
+                        <div class="mt-6 flex justify-between items-center">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="processed"
+                                    v-model="isProcessed"
+                                    @change="handleProcessChange"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label for="processed" class="ml-2 block text-sm text-gray-900">
+                                    Traiter
+                                </label>
+                            </div>
                             <Link
                                 :href="route('notifications.index')"
                                 class="text-sm text-gray-600 hover:text-gray-900"
@@ -114,4 +189,16 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
         </div>
     </AppSidebarLayout>
-</template> 
+</template>
+
+<style scoped>
+.fixed {
+    position: fixed;
+}
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+</style> 

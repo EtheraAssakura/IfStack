@@ -90,8 +90,6 @@ class NotificationController extends Controller
                 abort(404);
             }
 
-            $alert->update(['processed' => true]);
-
             // Transformer l'alerte dans le même format que les notifications
             $formattedAlert = [
                 'id' => $alert->id,
@@ -113,7 +111,8 @@ class NotificationController extends Controller
                 'stock' => [
                     'name' => $alert->stock->fourniture->name,
                     'estimated_quantity' => $alert->stock->estimated_quantity,
-                    'local_alert_threshold' => $alert->stock->local_alert_threshold
+                    'local_alert_threshold' => $alert->stock->local_alert_threshold,
+                    'processed' => $alert->processed
                 ]
             ];
 
@@ -128,10 +127,34 @@ class NotificationController extends Controller
                 abort(404);
             }
 
-            $notification->update(['is_read' => true]);
             return Inertia::render('Notifications/Show', [
                 'notification' => $notification
             ]);
         }
+    }
+
+    public function process(Request $request, $id)
+    {
+        $type = $request->query('type');
+        $processed = $request->boolean('processed');
+
+        \Log::info('Process notification', [
+            'id' => $id,
+            'type' => $type,
+            'processed' => $processed,
+            'request_data' => $request->all()
+        ]);
+
+        if ($type === 'alert') {
+            $alert = Alert::findOrFail($id);
+            $alert->update(['processed' => $processed]);
+            \Log::info('Alert updated', ['alert' => $alert->fresh()]);
+        } else {
+            $notification = Notification::findOrFail($id);
+            $notification->update(['is_read' => $processed]);
+            \Log::info('Notification updated', ['notification' => $notification->fresh()]);
+        }
+
+        return back();
     }
 }

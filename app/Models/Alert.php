@@ -14,6 +14,11 @@ class Alert extends Model
         'user_id',
         'type',
         'comment',
+        'processed'
+    ];
+
+    protected $casts = [
+        'processed' => 'boolean'
     ];
 
     public function stock()

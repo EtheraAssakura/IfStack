@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Route pour la création de demandes
     Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
+    Route::put('/notifications/{id}/process', [NotificationController::class, 'process'])->name('notifications.process');
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
