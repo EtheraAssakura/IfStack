@@ -5,7 +5,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FournitureController;
 use App\Http\Controllers\LivraisonController;
 use App\Http\Controllers\StockController;
-use App\Http\Controllers\EmplacementController;
 use App\Http\Controllers\EtablissementController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;

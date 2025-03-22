@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import UserLayout from '@/layouts/user/UserLayout.vue';
 import { TransitionRoot } from '@headlessui/vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData, type User } from '@/types';
+
+const page = usePage<SharedData>();
+const user = page.props.auth.user as User;
+
+const isAdmin = computed(() => user.roles?.some(role => role.name === 'Administrateur'));
+const Layout = computed(() => isAdmin.value ? AppSidebarLayout : UserLayout);
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -52,7 +59,7 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbItems">
+    <component :is="Layout" :breadcrumbs="breadcrumbItems">
         <Head title="Password settings" />
 
         <SettingsLayout>
@@ -117,5 +124,5 @@ const updatePassword = () => {
                 </form>
             </div>
         </SettingsLayout>
-    </AppLayout>
+    </component>
 </template>
