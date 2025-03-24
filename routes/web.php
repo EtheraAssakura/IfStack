@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'laravelVersion' => Application::VERSION,
             'phpVersion' => PHP_VERSION,
         ]);
-    });
+    })->name('welcome');
 
     // Route pour la prise de fournitures
     Route::get('/stock/take', [StockController::class, 'take'])->name('stock.take');

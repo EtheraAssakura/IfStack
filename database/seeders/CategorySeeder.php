@@ -11,6 +11,12 @@ class CategorySeeder extends Seeder
     {
         DB::table('categories')->insert([
             [
+                'name' => 'Autres',
+                'description' => 'Autres produits',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'name' => 'Papeterie',
                 'description' => 'Fournitures de papeterie générale',
                 'created_at' => now(),
@@ -43,6 +49,12 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Hygiène',
                 'description' => 'Produits d\'hygiène et de nettoyage',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Thé',
+                'description' => 'Thés, infusions et boissons chaudes',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

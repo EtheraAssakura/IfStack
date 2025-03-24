@@ -20,10 +20,10 @@ class DatabaseSeeder extends Seeder
             SupplySeeder::class,
             LocationSeeder::class,
             StockItemSeeder::class,
-            AlertSeeder::class,
             ReportingSeeder::class,
             OrderSeeder::class,
             OrderItemSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

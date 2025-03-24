@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Céline DUPUIS',
                 'email' => 'celine.dupuis@isfac.fr',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('*FbY4?34r2uNw{'),
                 'site_id' => DB::table('sites')->where('name', 'ISFAC Poitiers')->value('id'),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Utilisateur Niort',
                 'email' => 'user.niort@isfac.fr',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('2Yh3K-dLiz4%8^'),
                 'site_id' => DB::table('sites')->where('name', 'ISFAC Niort')->value('id'),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Utilisateur La Rochelle',
                 'email' => 'user.larochelle@isfac.fr',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('FEw/8x;74cLa)5'),
                 'site_id' => DB::table('sites')->where('name', 'ISFAC La Rochelle')->value('id'),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Admin Ethera',
                 'email' => 'etheraassakura@gmail.com',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('FK9y6=33d]Fqv:'),
                 'site_id' => DB::table('sites')->where('name', 'ISFAC Poitiers')->value('id'),
             ],
         ];

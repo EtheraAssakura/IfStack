@@ -9,7 +9,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('suppliers', function (Blueprint $table) {
-            $table->string('email')->nullable()->after('name');
+            $table->string('contact_name')->nullable()->after('name');
+            $table->string('email')->nullable()->after('contact_name');
             $table->string('phone')->nullable()->after('email');
             $table->string('address')->nullable()->after('phone');
             $table->string('city')->nullable()->after('address');
@@ -21,7 +22,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('suppliers', function (Blueprint $table) {
-            $table->dropColumn(['email', 'phone', 'address', 'city', 'country', 'postal_code']);
+            $table->dropColumn(['contact_name', 'email', 'phone', 'address', 'city', 'country', 'postal_code']);
         });
     }
 };
