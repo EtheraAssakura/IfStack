@@ -18,6 +18,7 @@ class SupplySeeder extends Seeder
         // Récupérer les IDs des fournisseurs
         $calipageId = DB::table('suppliers')->where('name', 'Calipage')->value('id');
         $prohdId = DB::table('suppliers')->where('name', 'ProHD')->value('id');
+        $madeintheId = DB::table('suppliers')->where('name', 'Made in The')->value('id');
 
         // Créer les fournitures
         DB::table('supplies')->insert([
@@ -494,15 +495,6 @@ class SupplySeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'supply_id' => DB::table('supplies')->where('reference', 'THE-003')->value('id'),
-                'supplier_id' => DB::table('suppliers')->where('name', 'Made in Thé')->value('id'),
-                'supplier_reference' => 'MIT-THE-003',
-                'unit_price' => 12.95,
-                'catalog_url' => 'https://www.grossiste-de-the.fr/produit/the-vert',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
                 'supply_id' => DB::table('supplies')->where('reference', 'CIS-STA-001')->value('id'),
                 'supplier_id' => $calipageId,
                 'supplier_reference' => 'CAL-CIS-001',
@@ -725,6 +717,34 @@ class SupplySeeder extends Seeder
                 'supplier_reference' => 'PRO-SCO-001',
                 'unit_price' => 2.15,
                 'catalog_url' => 'https://www.prohd.fr/produit/scotch-transparent',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            // Ajout des relations avec Made in The pour les fournitures de thé
+            [
+                'supply_id' => DB::table('supplies')->where('reference', 'THE-001')->value('id'),
+                'supplier_id' => $madeintheId,
+                'supplier_reference' => 'MIT-THE-001',
+                'unit_price' => 12.95,
+                'catalog_url' => 'https://www.grossiste-de-the.fr/produit/the-vert',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'supply_id' => DB::table('supplies')->where('reference', 'THE-002')->value('id'),
+                'supplier_id' => $madeintheId,
+                'supplier_reference' => 'MIT-THE-002',
+                'unit_price' => 12.95,
+                'catalog_url' => 'https://www.grossiste-de-the.fr/produit/the-blanc',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'supply_id' => DB::table('supplies')->where('reference', 'THE-003')->value('id'),
+                'supplier_id' => $madeintheId,
+                'supplier_reference' => 'MIT-THE-003',
+                'unit_price' => 12.95,
+                'catalog_url' => 'https://www.grossiste-de-the.fr/produit/the-vert',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

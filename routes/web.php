@@ -15,6 +15,7 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ErrorController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use Inertia\Inertia;
@@ -131,5 +132,12 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/stocks/export/{site?}', [StockController::class, 'export'])->name('stocks.export');
 });
 
+// Routes d'erreur
+Route::get('/404', [ErrorController::class, 'notFound'])->name('errors.404');
+Route::get('/403', [ErrorController::class, 'forbidden'])->name('errors.403');
+Route::get('/419', [ErrorController::class, 'expired'])->name('errors.419');
+Route::get('/429', [ErrorController::class, 'tooManyRequests'])->name('errors.429');
+Route::get('/500', [ErrorController::class, 'serverError'])->name('errors.500');
+Route::get('/503', [ErrorController::class, 'serviceUnavailable'])->name('errors.503');
 
 require __DIR__ . '/settings.php';

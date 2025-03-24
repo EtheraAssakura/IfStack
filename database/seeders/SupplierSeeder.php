@@ -35,9 +35,9 @@ class SupplierSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Made in Thé',
+                'name' => 'Made in The',
                 'catalog_url' => 'https://www.grossiste-de-the.fr/',
-                'contact_name' => 'Made in Thé',
+                'contact_name' => 'Made in The',
                 'email' => 'contact@madeinthe.fr',
                 'phone' => '+33 1 40 46 46 46',
                 'address' => '302 Chemin du Grand Babol',
@@ -45,7 +45,7 @@ class SupplierSeeder extends Seeder
                 'postal_code' => '13109',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
+            ]
         ]);
     }
 }
