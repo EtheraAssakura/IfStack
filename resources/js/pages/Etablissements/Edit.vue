@@ -89,8 +89,18 @@ const handleFileInput = (event: Event) => {
 };
 
 const removeImage = () => {
-    form.plan = null;
-    preview.value = null;
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce plan ?')) {
+        router.delete(route('etablissements.remove-plan', props.etablissement.id), {
+            onSuccess: () => {
+                form.plan = null;
+                preview.value = null;
+                form.plan_path = null;
+            },
+            onError: (errors) => {
+                console.error('Erreur lors de la suppression du plan:', errors);
+            }
+        });
+    }
 };
 
 const breadcrumbs: BreadcrumbItemType[] = [

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import type { BreadcrumbItemType } from '@/types';
 import type { Stock } from '@/types/app';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
@@ -61,54 +60,106 @@ const forms = ref(
             stock.id,
             useForm({
                 quantity: stock.estimated_quantity,
-                comment: '',
             })
         ])
     )
 );
 
-const submit = (stockId: number) => {
-    forms.value[stockId].post(route('stock.take.submit', stockId));
-};
-
 const dialogOpen = ref(false);
 const selectedStockId = ref<number | null>(null);
+const showSuccessModal = ref(false);
+const successMessage = ref('');
 
 const ruptureForm = useForm({
     estimated_quantity: 0,
     comment: '',
 });
 
-const signalRupture = () => {
-    const currentStockId = selectedStockId.value;
-    if (currentStockId === null) return;
-    
-    const stock = filteredStocks.value.find(s => s.id === currentStockId);
+const submit = (stockId: number) => {
+    const stock = filteredStocks.value.find(s => s.id === stockId);
     if (!stock) return;
 
-    ruptureForm.comment = `Le stock de ${stock.supply.name} situé à l'emplacement ${stock.location.name} est en rupture de stock`;
-    
-    forms.value[currentStockId].quantity = 0;
-    forms.value[currentStockId].comment = ruptureForm.comment;
-    forms.value[currentStockId].post(route('stock.take.submit', currentStockId), {
+    const previousQuantity = stock.estimated_quantity;
+    const newQuantity = forms.value[stockId].quantity;
+
+    forms.value[stockId].post(route('stock.take.submit', stockId), {
         onSuccess: () => {
-            dialogOpen.value = false;
-            selectedStockId.value = null;
-            router.get(route('stock.take', {
-                locationId: props.locationId,
-                siteId: props.siteId
-            }), {}, {
-                preserveState: false,
-                preserveScroll: false
-            });
+            successMessage.value = 'Le stock a été mis à jour avec succès';
+            showSuccessModal.value = true;
+
+            // Si la quantité est passée sous le seuil d'alerte, on attend que la modale s'affiche avant de recharger
+            if (newQuantity <= stock.local_alert_threshold && previousQuantity > stock.local_alert_threshold) {
+                setTimeout(() => {
+                    router.get(route('stock.take', {
+                        locationId: props.locationId,
+                        siteId: props.siteId
+                    }), {}, {
+                        preserveState: false,
+                        preserveScroll: false
+                    });
+                }, 1000);
+            }
         }
     });
 };
+
+const signalRupture = () => {
+    if (!selectedStockId.value) return;
+
+    const stock = filteredStocks.value.find(s => s.id === selectedStockId.value);
+    if (!stock) return;
+
+    ruptureForm.post(route('stocks.signal-rupture', selectedStockId.value), {
+        onSuccess: () => {
+            successMessage.value = 'La rupture de stock a été signalée avec succès';
+            showSuccessModal.value = true;
+            dialogOpen.value = false;
+            selectedStockId.value = null;
+
+            // On attend que la modale s'affiche avant de recharger
+            setTimeout(() => {
+                router.get(route('stock.take', {
+                    locationId: props.locationId,
+                    siteId: props.siteId
+                }), {}, {
+                    preserveState: false,
+                    preserveScroll: false
+                });
+            }, 1000);
+        }
+    });
+};
+
 </script>
 
 <template>
     <UserLayout :breadcrumbs="breadcrumbs">
         <Head title="Prise de stock" />
+
+        <!-- Modale de succès -->
+        <Transition
+            enter-active-class="transition ease-out duration-300"
+            enter-from-class="transform -translate-y-full"
+            enter-to-class="transform translate-y-0"
+            leave-active-class="transition ease-in duration-200"
+            leave-from-class="transform translate-y-0"
+            leave-to-class="transform -translate-y-full"
+        >
+            <div v-if="showSuccessModal" class="fixed top-0 left-0 right-0 z-50">
+                <div class="bg-white shadow-lg mx-auto max-w-sm mt-4 rounded-lg p-4" @click.stop>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="text-gray-900">
+                            {{ successMessage }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Transition>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -170,15 +221,6 @@ const signalRupture = () => {
                                         type="number"
                                         min="0"
                                         required
-                                    />
-                                </div>
-                                
-                                <div>
-                                    <Label for="comment">Commentaire</Label>
-                                    <Textarea
-                                        :id="'comment_' + stock.id"
-                                        v-model="forms[stock.id].comment"
-                                        placeholder="Raison de l'ajustement (optionnel)"
                                     />
                                 </div>
 

@@ -227,6 +227,7 @@ const getStockValue = (stock: Stock, path: string) => {
     
     return value ?? '-';
 };
+console.log(props.site);
 </script>
 
 <template>

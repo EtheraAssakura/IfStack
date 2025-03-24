@@ -324,4 +324,14 @@ class FournitureController extends Controller
     return redirect()->route('fournitures.index')
       ->with('success', 'Fourniture supprimée avec succès.');
   }
+
+  public function removeImage(Supply $fourniture)
+  {
+    if ($fourniture->image_url) {
+      Storage::delete(str_replace('/storage/', 'public/', $fourniture->image_url));
+      $fourniture->update(['image_url' => null]);
+    }
+
+    return back()->with('success', 'Image supprimée avec succès.');
+  }
 }

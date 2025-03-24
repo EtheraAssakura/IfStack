@@ -161,10 +161,6 @@ class StockController extends Controller
 
     if ($request->has('site')) {
       $site = $request->get('site');
-      Log::info('Filtrage par site', [
-        'site' => $site,
-        'request_all' => $request->all()
-      ]);
 
       $query->whereHas('emplacement.etablissement', function ($q) use ($site) {
         $q->where('slug', 'isfac-' . $site);
@@ -187,33 +183,9 @@ class StockController extends Controller
 
     $stocks = $query->get();
 
-    Log::info('Stocks récupérés', [
-      'count' => $stocks->count(),
-      'site' => $request->get('site'),
-      'first_stock' => $stocks->first() ? [
-        'id' => $stocks->first()->id,
-        'site' => $stocks->first()->emplacement?->etablissement?->slug,
-        'name' => $stocks->first()->emplacement?->etablissement?->name,
-        'emplacement' => $stocks->first()->emplacement?->name,
-        'fourniture' => $stocks->first()->fourniture?->name
-      ] : null,
-      'all_stocks' => $stocks->map(function ($stock) {
-        return [
-          'id' => $stock->id,
-          'site' => $stock->emplacement?->etablissement?->slug,
-          'name' => $stock->emplacement?->etablissement?->name
-        ];
-      })
-    ]);
-
     $groupedStocks = $stocks->groupBy(function ($stock) {
       return $stock->emplacement?->etablissement?->name ?? 'Non assigné';
     });
-
-    Log::info('Stocks groupés', [
-      'groups' => $groupedStocks->keys(),
-      'site' => $request->get('site')
-    ]);
 
     return Inertia::render('Stocks/Index', [
       'stocks' => $groupedStocks,
@@ -257,6 +229,9 @@ class StockController extends Controller
 
   public function edit(Stock $stock): Response
   {
+
+
+
     $fournitures = Fourniture::all();
     $emplacements = Emplacement::with('etablissement')->get();
     return Inertia::render('Stocks/Edit', [
@@ -268,8 +243,8 @@ class StockController extends Controller
 
   public function update(Request $request, Stock $stock)
   {
-    $user = Auth::user();
-    $isUser = $user->roles->contains('name', 'Utilisateur');
+
+    $isUser = Auth::user()->roles->contains('name', 'Utilisateur');
 
     if ($isUser) {
       // Pour les utilisateurs, on ne permet que la mise à jour de la quantité
@@ -284,8 +259,9 @@ class StockController extends Controller
       if ($stock->estimated_quantity <= $stock->local_alert_threshold && $previousQuantity > $stock->local_alert_threshold) {
         Alerte::create([
           'stock_id' => $stock->id,
-          'user_id' => $user->id,
+          'user_id' => Auth::id(),
           'type' => 'seuil_atteint',
+          'title' => 'Alerte Stock - ' . $stock->fourniture->name,
           'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} à {$stock->emplacement->etablissement->name} est en alerte (quantité : {$stock->estimated_quantity} seuil d'alerte : {$stock->local_alert_threshold})",
         ]);
       }
@@ -306,8 +282,9 @@ class StockController extends Controller
     if ($stock->estimated_quantity <= $stock->local_alert_threshold && $previousQuantity > $stock->local_alert_threshold) {
       Alerte::create([
         'stock_id' => $stock->id,
-        'user_id' => $user->id,
+        'user_id' => Auth::id(),
         'type' => 'seuil_atteint',
+        'title' => 'Alerte Stock - ' . $stock->fourniture->name,
         'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} à {$stock->emplacement->etablissement->name} est en alerte (quantité : {$stock->estimated_quantity} seuil d'alerte : {$stock->local_alert_threshold})",
       ]);
     }
@@ -328,8 +305,11 @@ class StockController extends Controller
 
   public function signalRupture(Request $request, Stock $stock)
   {
+    // Charger les relations nécessaires
+    $stock->load(['fourniture', 'emplacement.etablissement']);
+
     $validated = $request->validate([
-      'commentaire' => 'nullable|string|max:1000',
+      'comment' => 'nullable|string|max:1000',
       'estimated_quantity' => 'required|numeric|min:0',
     ]);
 
@@ -342,7 +322,8 @@ class StockController extends Controller
       'stock_id' => $stock->id,
       'user_id' => Auth::id(),
       'type' => 'rupture',
-      'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} est en rupture de stock" . ($validated['commentaire'] ? " - {$validated['commentaire']}" : ""),
+      'title' => 'Alerte Rupture - ' . $stock->fourniture->name,
+      'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} à {$stock->emplacement->etablissement->name} est en rupture de stock",
     ]);
 
     return redirect()->back()
@@ -526,12 +507,6 @@ class StockController extends Controller
         ];
       });
 
-    Log::info('Prise de stock - Données préparées', [
-      'stocks_count' => $stocks->count(),
-      'first_stock' => $stocks->first(),
-      'locationId' => $locationId
-    ]);
-
     return Inertia::render('Stocks/Take', [
       'stocks' => $stocks,
       'locationId' => (string) $locationId,
@@ -540,6 +515,9 @@ class StockController extends Controller
 
   public function takeStock(Request $request, Stock $stock)
   {
+    // Charger les relations nécessaires
+    $stock->load(['fourniture', 'emplacement.etablissement']);
+
     $validated = $request->validate([
       'quantity' => 'required|integer|min:0',
       'comment' => 'nullable|string|max:255',
@@ -549,6 +527,7 @@ class StockController extends Controller
     $difference = $validated['quantity'] - $previousQuantity;
     $adjustmentType = $difference >= 0 ? 'inventory_increase' : 'inventory_decrease';
 
+    // Mettre à jour la quantité
     $stock->update([
       'estimated_quantity' => $validated['quantity']
     ]);
@@ -564,6 +543,17 @@ class StockController extends Controller
       'new_quantity' => $validated['quantity'],
       'reason' => $validated['comment'] ?? 'Ajustement d\'inventaire',
     ]);
+
+    // Vérifier si la quantité est passée sous le seuil d'alerte
+    if ($stock->estimated_quantity <= $stock->local_alert_threshold && $previousQuantity > $stock->local_alert_threshold) {
+      Alerte::create([
+        'stock_id' => $stock->id,
+        'user_id' => Auth::id(),
+        'type' => 'seuil_atteint',
+        'title' => 'Alerte Stock - ' . $stock->fourniture->name,
+        'comment' => "Le stock de {$stock->fourniture->name} situé à l'emplacement {$stock->emplacement->name} à {$stock->emplacement->etablissement->name} est en alerte (quantité : {$stock->estimated_quantity} seuil d'alerte : {$stock->local_alert_threshold})",
+      ]);
+    }
 
     return redirect()->back()->with('success', 'Inventaire mis à jour avec succès.');
   }

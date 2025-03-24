@@ -78,8 +78,10 @@ const getAvailableFournitures = computed(() => {
     // Récupérer les IDs des fournitures déjà sélectionnées
     const selectedIds = form.stocks.map(stock => stock.fourniture_id).filter(id => id !== '');
     
-    // Retourner les fournitures qui ne sont pas déjà sélectionnées
-    return props.fournitures.filter(fourniture => !selectedIds.includes(fourniture.id.toString()));
+    // Retourner les fournitures qui ne sont pas déjà sélectionnées, triées par nom
+    return props.fournitures
+        .filter(fourniture => !selectedIds.includes(fourniture.id.toString()))
+        .sort((a, b) => a.name.localeCompare(b.name));
 });
 
 // Computed property pour filtrer les fournitures disponibles pour une ligne spécifique
@@ -89,11 +91,13 @@ const getAvailableFournituresForLine = (currentFournitureId: string) => {
         .map(stock => stock.fourniture_id)
         .filter(id => id !== '' && id !== currentFournitureId);
     
-    // Retourner les fournitures qui ne sont pas déjà sélectionnées ou qui sont la fourniture courante
-    return props.fournitures.filter(fourniture => 
-        !selectedIds.includes(fourniture.id.toString()) || 
-        fourniture.id.toString() === currentFournitureId
-    );
+    // Retourner les fournitures qui ne sont pas déjà sélectionnées ou qui sont la fourniture courante, triées par nom
+    return props.fournitures
+        .filter(fourniture => 
+            !selectedIds.includes(fourniture.id.toString()) || 
+            fourniture.id.toString() === currentFournitureId
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
 };
 
 const getFormError = (path: string): string | undefined => {
@@ -243,9 +247,9 @@ const breadcrumbs: BreadcrumbItemType[] = [
                                     <div
                                         v-for="(stock, index) in form.stocks"
                                         :key="index"
-                                        class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end border-b border-gray-200 pb-4"
+                                        class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end border-b border-gray-200 pb-4"
                                     >
-                                        <div>
+                                        <div class="sm:col-span-2">
                                             <Label :for="'fourniture_id_' + index">Fourniture</Label>
                                             <Select
                                                 :id="'fourniture_id_' + index"

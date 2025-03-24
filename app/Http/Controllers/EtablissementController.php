@@ -174,4 +174,15 @@ class EtablissementController extends Controller
 
         return response()->json($site);
     }
+
+    public function removePlan(Etablissement $etablissement)
+    {
+        if ($etablissement->plan_path) {
+            Storage::delete(str_replace('/storage/', 'public/', $etablissement->plan_path));
+            $etablissement->update(['plan_path' => null]);
+        }
+
+        return redirect()->route('etablissements.show', $etablissement)
+            ->with('success', 'Plan supprimé avec succès.');
+    }
 }

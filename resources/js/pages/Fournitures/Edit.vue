@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { useDropZone } from '@vueuse/core';
 import { ChevronDown } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -134,8 +134,19 @@ const handleFileInput = (event: Event) => {
 };
 
 const removeImage = () => {
-  form.image = null;
-  preview.value = null;
+  if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+    router.delete(route('fournitures.remove-image', props.fourniture.id), {
+      preserveScroll: true,
+      onSuccess: () => {
+        form.image = null;
+        preview.value = null;
+        form.catalog_url = '';
+      },
+      onError: (errors) => {
+        console.error('Erreurs de suppression:', errors);
+      }
+    });
+  }
 };
 
 const breadcrumbs: BreadcrumbItem[] = [

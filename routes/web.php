@@ -29,14 +29,7 @@ require __DIR__ . '/auth.php';
 */
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Welcome', [
-            'canLogin' => Route::has('login'),
-            'canRegister' => Route::has('register'),
-            'laravelVersion' => Application::VERSION,
-            'phpVersion' => PHP_VERSION,
-        ]);
-    })->name('welcome');
+    Route::get('/', [HomeController::class, 'index'])->name('welcome');
 
     // Route pour la prise de fournitures
     Route::get('/stock/take', [StockController::class, 'take'])->name('stock.take');
@@ -80,6 +73,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::put('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
     Route::post('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
     Route::delete('/fournitures/{fourniture}', [FournitureController::class, 'destroy'])->name('fournitures.destroy');
+    Route::delete('/fournitures/{fourniture}/image', [FournitureController::class, 'removeImage'])->name('fournitures.remove-image');
 
     // Commandes
     Route::resource('commandes', CommandeController::class);
@@ -105,6 +99,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::put('/etablissements/{etablissement}', [EtablissementController::class, 'update'])->name('etablissements.update');
     Route::post('/etablissements/{etablissement}', [EtablissementController::class, 'update'])->name('etablissements.update');
     Route::delete('/etablissements/{etablissement}', [EtablissementController::class, 'destroy'])->name('etablissements.destroy');
+    Route::delete('/etablissements/{etablissement}/plan', [EtablissementController::class, 'removePlan'])->name('etablissements.remove-plan');
 
     // Emplacements dans les établissements
     Route::post('/etablissements/{etablissement}/locations', [LocationController::class, 'store'])->name('etablissements.locations.store');

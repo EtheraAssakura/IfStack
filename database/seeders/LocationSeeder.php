@@ -13,7 +13,7 @@ class LocationSeeder extends Seeder
         $poitiersId = DB::table('sites')->where('name', 'ISFAC Poitiers')->value('id');
         $niortId = DB::table('sites')->where('name', 'ISFAC Niort')->value('id');
         $laRochelleId = DB::table('sites')->where('name', 'ISFAC La Rochelle')->value('id');
-        $angoulemeId = DB::table('sites')->where('name', 'ISFAC Angoulême')->value('id');
+        $marrakechId = DB::table('sites')->where('name', 'ISFAC Marrakech')->value('id');
 
         DB::table('locations')->insert([
             [
@@ -98,25 +98,25 @@ class LocationSeeder extends Seeder
             ],
             [
                 'name' => 'Bureau administratif',
-                'description' => 'Stockage principal du site d\'Angoulême',
-                'site_id' => $angoulemeId,
-                'qr_code' => 'ANG-BA-001',
+                'description' => 'Stockage principal du site de Marrakech',
+                'site_id' => $marrakechId,
+                'qr_code' => 'MAR-BA-001',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'name' => 'Salle de réunion',
                 'description' => 'Armoire dans la salle de réunion',
-                'site_id' => $angoulemeId,
-                'qr_code' => 'ANG-SR-001',
+                'site_id' => $marrakechId,
+                'qr_code' => 'MAR-SR-001',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'name' => 'Local technique',
                 'description' => 'Stockage dans le local technique',
-                'site_id' => $angoulemeId,
-                'qr_code' => 'ANG-LT-001',
+                'site_id' => $marrakechId,
+                'qr_code' => 'MAR-LT-001',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

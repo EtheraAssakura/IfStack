@@ -71,10 +71,6 @@ const submit = () => {
                             />
                             <span class="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#319cb3] transition-colors duration-300">Se souvenir de moi</span>
                         </label>
-
-                        <a href="#" class="text-sm font-medium text-[#319cb3] hover:text-[#1d6d83] transition-colors duration-300">
-                            Mot de passe oublié?
-                        </a>
                     </div>
 
                     <button

@@ -14,12 +14,24 @@ class Alert extends Model
         'user_id',
         'type',
         'comment',
-        'processed'
+        'processed',
+        'title'
     ];
 
     protected $casts = [
         'processed' => 'boolean'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($alert) {
+            if ($alert->stock) {
+                $alert->title = ($alert->stock->estimated_quantity === 0 ? 'Alerte Rupture' : 'Alerte Stock') . ' - ' . $alert->stock->fourniture->name;
+            }
+        });
+    }
 
     public function stock()
     {

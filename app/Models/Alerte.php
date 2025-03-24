@@ -15,11 +15,23 @@ class Alerte extends Model
     'type',
     'comment',
     'processed',
+    'title'
   ];
 
   protected $casts = [
     'processed' => 'boolean',
   ];
+
+  protected static function boot()
+  {
+    parent::boot();
+
+    static::creating(function ($alerte) {
+      if ($alerte->stock) {
+        $alerte->title = ($alerte->stock->estimated_quantity === 0 ? 'Alerte Rupture' : 'Alerte Stock') . ' - ' . $alerte->stock->fourniture->name;
+      }
+    });
+  }
 
   public function stock(): BelongsTo
   {

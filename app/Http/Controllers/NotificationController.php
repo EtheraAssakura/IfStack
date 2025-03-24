@@ -20,7 +20,7 @@ class NotificationController extends Controller
                 return [
                     'id' => $alert->id,
                     'type' => 'alert',
-                    'title' => 'Alerte Stock - ' . $alert->stock->fourniture->name,
+                'title' => $alert->title,
                     'message' => $alert->comment,
                     'is_read' => $alert->processed ?? false,
                     'created_at' => $alert->created_at,
@@ -121,7 +121,7 @@ class NotificationController extends Controller
             $formattedAlert = [
                 'id' => $alert->id,
                 'type' => 'alert',
-                'title' => 'Alerte Stock - ' . $alert->stock->fourniture->name,
+                'title' => $alert->title,
                 'message' => $alert->comment,
                 'is_read' => $alert->processed,
                 'created_at' => $alert->created_at,
@@ -171,21 +171,12 @@ class NotificationController extends Controller
         $type = $request->query('type');
         $processed = $request->boolean('processed');
 
-        \Log::info('Process notification', [
-            'id' => $id,
-            'type' => $type,
-            'processed' => $processed,
-            'request_data' => $request->all()
-        ]);
-
         if ($type === 'alert') {
             $alert = Alert::findOrFail($id);
             $alert->update(['processed' => $processed]);
-            \Log::info('Alert updated', ['alert' => $alert->fresh()]);
         } else {
             $notification = Notification::findOrFail($id);
             $notification->update(['is_read' => $processed]);
-            \Log::info('Notification updated', ['notification' => $notification->fresh()]);
         }
 
         return back();

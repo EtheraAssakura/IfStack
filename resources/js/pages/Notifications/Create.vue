@@ -3,18 +3,29 @@ import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const form = useForm({
     title: '',
     description: '',
 });
 
+const showSuccessModal = ref(false);
+
 const submit = () => {
     form.post(route('notifications.store'), {
         onSuccess: () => {
             form.reset();
+            showSuccessModal.value = true;
+            setTimeout(() => {
+                showSuccessModal.value = false;
+            }, 1000);
         },
     });
+};
+
+const closeModal = () => {
+    showSuccessModal.value = false;
 };
 </script>
 
@@ -23,6 +34,31 @@ const submit = () => {
         <Head>
             <title>Nouvelle Demande - ISFAC</title>
         </Head>
+
+        <!-- Modale de succès -->
+        <Transition
+            enter-active-class="transition ease-out duration-200"
+            enter-from-class="transform opacity-0 scale-95"
+            enter-to-class="transform opacity-100 scale-100"
+            leave-active-class="transition ease-in duration-100"
+            leave-from-class="transform opacity-100 scale-100"
+            leave-to-class="transform opacity-0 scale-95"
+        >
+            <div v-if="showSuccessModal" class="fixed inset-0 flex items-center justify-center z-50" @click="closeModal">
+                <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto" @click.stop>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="text-gray-900">
+                            La demande a été envoyée avec succès
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Transition>
 
         <template #header>
             <div class="flex items-center justify-between">

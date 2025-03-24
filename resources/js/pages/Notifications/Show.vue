@@ -98,15 +98,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 
         <!-- Modale de succès -->
         <Transition
-            enter-active-class="transition ease-out duration-200"
-            enter-from-class="transform opacity-0 scale-95"
-            enter-to-class="transform opacity-100 scale-100"
-            leave-active-class="transition ease-in duration-100"
-            leave-from-class="transform opacity-100 scale-100"
-            leave-to-class="transform opacity-0 scale-95"
+            enter-active-class="transition ease-out duration-300"
+            enter-from-class="transform -translate-y-full"
+            enter-to-class="transform translate-y-0"
+            leave-active-class="transition ease-in duration-200"
+            leave-from-class="transform translate-y-0"
+            leave-to-class="transform -translate-y-full"
         >
-            <div v-if="showSuccessModal" class="fixed inset-0 flex items-center justify-center z-50" @click="closeModal">
-                <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto" @click.stop>
+            <div v-if="showSuccessModal" class="fixed top-0 left-0 right-0 z-50">
+                <div class="bg-white shadow-lg mx-auto max-w-sm mt-4 rounded-lg p-4" @click.stop>
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0">
                             <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
