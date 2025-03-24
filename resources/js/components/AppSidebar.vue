@@ -11,7 +11,6 @@ import {
     Boxes,
     Building2,
     ClipboardList,
-    FileBarChart,
     LayoutGrid,
     Package,
     Scale,
@@ -30,6 +29,11 @@ const mainNavItems: NavItem[] = [
         title: 'Fournitures',
         href: route('fournitures.index'),
         icon: Package,
+    },
+    {
+        title: 'Fournisseurs',
+        href: route('suppliers.index'),
+        icon: Users,
     },
     {
         title: 'Etablissements',
@@ -56,11 +60,11 @@ const mainNavItems: NavItem[] = [
         href: route('notifications.index'),
         icon: Bell,
     },
-    {
-        title: 'Rapports',
-        href: route('reports.index'),
-        icon: FileBarChart,
-    },
+    // {
+    //     title: 'Rapports',
+    //     href: route('reports.index'),
+    //     icon: FileBarChart,
+    // },
 ];
 
 const adminNavItems: NavItem[] = [

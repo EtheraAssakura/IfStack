@@ -34,6 +34,11 @@ class Supply extends Model
         return $this->hasMany(StockItem::class);
     }
 
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(StockItem::class);
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);

@@ -13,7 +13,9 @@ class Supplier extends Model
         'email',
         'phone',
         'address',
-        'website'
+        'city',
+        'postal_code',
+        'catalog_url'
     ];
 
     public function supplies(): BelongsToMany

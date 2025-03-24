@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -7,6 +13,7 @@ import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { useDropZone } from '@vueuse/core';
+import { ChevronDown } from 'lucide-vue-next';
 
 import { ref } from 'vue';
 
@@ -25,6 +32,9 @@ const props = defineProps<Props>();
 const dropZone = ref<HTMLDivElement>();
 const isDragging = ref(false);
 const preview = ref<string | null>(null);
+const showCategoryModal = ref(false);
+const showSuccessMessage = ref(false);
+const successMessage = ref('');
 
 const form = useForm({
   name: '',
@@ -39,6 +49,7 @@ const form = useForm({
     prix: number;
     catalog_url: string;
   }>,
+  new_category_name: '',
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -150,6 +161,50 @@ const submit = () => {
     }
   });
 };
+
+const deleteCategory = (categoryId: number) => {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+
+  const deleteForm = useForm({});
+  deleteForm.delete(route('categories.destroy', categoryId), {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = 'La catégorie a été supprimée avec succès !';
+      showSuccessMessage.value = true;
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+      }, 3000);
+    },
+    onError: (errors) => {
+      console.error('Erreurs de suppression:', errors);
+    }
+  });
+};
+
+const createCategory = () => {
+  if (!form.new_category_name) return;
+  
+  const categoryForm = useForm({
+    name: form.new_category_name
+  });
+
+  categoryForm.post(route('categories.store'), {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      form.new_category_name = '';
+      successMessage.value = 'La catégorie a été ajoutée avec succès !';
+      showSuccessMessage.value = true;
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+      }, 3000);
+    },
+    onError: (errors) => {
+      console.error('Erreurs de validation:', errors);
+    }
+  });
+};
 </script>
 
 <template>
@@ -206,21 +261,66 @@ const submit = () => {
 
                 <div>
                   <Label for="category">Catégorie</Label>
-                  <Select
-                    id="category"
-                    v-model="form.category_id"
-                    class="mt-1 block w-full"
-                    required
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    <option
-                      v-for="category in categories"
-                      :key="category.id"
-                      :value="category.id"
+                  <div class="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      class="mt-1 flex-1 justify-between"
+                      @click="showCategoryModal = true"
                     >
-                      {{ category.name }}
-                    </option>
-                  </Select>
+                      <span>{{ categories.find(c => c.id === form.category_id)?.name || 'Sélectionner une catégorie' }}</span>
+                      <ChevronDown class="h-4 w-4 ml-2" />
+                    </Button>
+                    <Dialog v-model:open="showCategoryModal">
+                      <DialogContent class="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Gestion des catégories</DialogTitle>
+                        </DialogHeader>
+                        <div class="space-y-4">
+                          <div v-if="showSuccessMessage" class="p-3 bg-green-100 text-green-700 rounded-md">
+                            {{ successMessage }}
+                          </div>
+                          <div class="flex gap-2">
+                            <Input
+                              v-model="form.new_category_name"
+                              type="text"
+                              placeholder="Nom de la nouvelle catégorie"
+                              class="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              @click="createCategory"
+                              :disabled="!form.new_category_name"
+                            >
+                              Ajouter
+                            </Button>
+                          </div>
+                          <div class="space-y-2 max-h-[300px] overflow-y-auto">
+                            <div 
+                              v-for="category in categories" 
+                              :key="category.id" 
+                              class="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer"
+                              :class="{ 'bg-indigo-50': category.id === form.category_id }"
+                              @click="form.category_id = category.id; showCategoryModal = false"
+                            >
+                              <span>{{ category.name }}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                class="text-red-600 hover:text-red-700"
+                                @click.stop="deleteCategory(category.id)"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
 
                 <div>

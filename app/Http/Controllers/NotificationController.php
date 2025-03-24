@@ -38,7 +38,34 @@ class NotificationController extends Controller
             });
 
         // Récupérer les demandes
-        $latestRequests = Notification::latestRequests()->get();
+        $latestRequests = Notification::latestRequests()
+            ->with(['users' => function ($query) {
+                $query->select('users.id', 'users.name', 'users.email', 'users.site_id')
+                    ->with(['site' => function ($q) {
+                        $q->select('sites.id', 'sites.name');
+                    }]);
+            }])
+            ->get()
+            ->map(function ($request) {
+                return [
+                    'id' => $request->id,
+                    'type' => $request->type,
+                    'title' => $request->title,
+                    'message' => $request->message,
+                    'is_read' => $request->is_read,
+                    'created_at' => $request->created_at,
+                    'users' => $request->users->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'site' => [
+                                'name' => $user->site->name ?? 'N/A'
+                            ]
+                        ];
+                    })->toArray()
+                ];
+            });
 
         return Inertia::render('Notifications/Index', [
             'latestAlerts' => $latestAlerts,

@@ -330,6 +330,12 @@ class StockController extends Controller
   {
     $validated = $request->validate([
       'commentaire' => 'nullable|string|max:1000',
+      'estimated_quantity' => 'required|numeric|min:0',
+    ]);
+
+    // Mettre à jour la quantité estimée à 0
+    $stock->update([
+      'estimated_quantity' => 0
     ]);
 
     Alerte::create([

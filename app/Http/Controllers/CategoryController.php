@@ -27,10 +27,19 @@ class CategoryController extends Controller
             'description' => 'nullable|string|max:1000',
         ]);
 
-        Category::create($validated);
+        $category = Category::create($validated);
 
-        return redirect()->route('categories.index')
-            ->with('success', 'Catégorie créée avec succès.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'category' => $category,
+                'message' => 'Catégorie créée avec succès.'
+            ]);
+        }
+
+        return back()->with([
+            'category' => $category,
+            'message' => 'Catégorie créée avec succès.'
+        ]);
     }
 
     public function edit(Category $category)
@@ -55,12 +64,18 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if ($category->supplies()->exists()) {
-            return back()->with('error', 'Impossible de supprimer une catégorie contenant des fournitures.');
-        }
+        // Trouver ou créer la catégorie "Autre"
+        $autreCategory = Category::firstOrCreate(
+            ['name' => 'Autre'],
+            ['description' => 'Catégorie par défaut pour les fournitures non catégorisées']
+        );
 
+        // Transférer toutes les fournitures vers la catégorie "Autre"
+        $category->supplies()->update(['category_id' => $autreCategory->id]);
+
+        // Supprimer la catégorie
         $category->delete();
 
-        return back()->with('success', 'Catégorie supprimée avec succès.');
+        return back()->with('success', 'Catégorie supprimée avec succès. Les fournitures ont été transférées vers la catégorie "Autre".');
     }
 }

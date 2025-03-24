@@ -19,25 +19,25 @@ class Fourniture extends Model
     'category_id',
   ];
 
-  public function categorie(): BelongsTo
+  public function category(): BelongsTo
   {
-    return $this->belongsTo(Categorie::class, 'category_id');
+    return $this->belongsTo(Category::class, 'category_id');
   }
 
   public function fournisseurs(): BelongsToMany
   {
-    return $this->belongsToMany(Fournisseur::class, 'supplier_supply', 'supply_id', 'supplier_id')
+    return $this->belongsToMany(Supplier::class, 'supplier_supply', 'supply_id', 'supplier_id')
       ->withPivot(['supplier_reference', 'unit_price', 'catalog_url'])
       ->withTimestamps();
   }
 
   public function stocks(): HasMany
   {
-    return $this->hasMany(Stock::class, 'supply_id');
+    return $this->hasMany(StockItem::class, 'supply_id');
   }
 
   public function alertes()
   {
-    return $this->hasManyThrough(Alerte::class, Stock::class, 'supply_id');
+    return $this->hasManyThrough(Alert::class, StockItem::class, 'supply_id');
   }
 }

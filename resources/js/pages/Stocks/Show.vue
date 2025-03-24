@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import type { Stock } from '@/types/app';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps<{
     stock: Stock;
@@ -17,6 +17,7 @@ const props = defineProps<{
 
 const page = usePage();
 const isUser = page.props.auth?.user?.roles?.some(role => role.name === 'Utilisateur') ?? false;
+const dialogOpen = ref(false);
 
 const breadcrumbs: BreadcrumbItemType[] = [
     {
@@ -35,7 +36,8 @@ const form = useForm({
 });
 
 const ruptureForm = useForm({
-    comment: '',
+    estimated_quantity: 0,
+    commentaire: `Le stock de ${props.stock.fourniture.name} situé à l'emplacement ${props.stock.emplacement.name} (${props.stock.emplacement.etablissement.name}) est en rupture de stock`
 });
 
 const submit = () => {
@@ -43,7 +45,12 @@ const submit = () => {
 };
 
 const signalRupture = () => {
-    ruptureForm.post(route('stocks.signal-rupture', props.stock.id));
+    ruptureForm.post(route('stocks.signal-rupture', props.stock.id), {
+        onSuccess: () => {
+            dialogOpen.value = false;
+            router.visit(route('stocks.show', props.stock.id));
+        }
+    });
 };
 </script>
 
@@ -68,7 +75,7 @@ const signalRupture = () => {
                                     Retour
                                 </Link>
                             </Button>
-                            <Dialog>
+                            <Dialog v-model:open="dialogOpen">
                                 <DialogTrigger as-child>
                                     <Button variant="destructive">
                                         Signaler une rupture
@@ -78,18 +85,10 @@ const signalRupture = () => {
                                     <DialogHeader>
                                         <DialogTitle>Signaler une rupture de stock</DialogTitle>
                                         <DialogDescription>
-                                            Cette action créera une alerte pour signaler une rupture de stock.
+                                            Cette action mettra la quantité estimée à 0 et créera une alerte de rupture de stock.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <form @submit.prevent="signalRupture" class="space-y-4">
-                                        <div class="space-y-2">
-                                            <Label for="comment">Commentaire</Label>
-                                            <Textarea
-                                                id="comment"
-                                                v-model="ruptureForm.comment"
-                                                placeholder="Ajoutez un commentaire (optionnel)"
-                                            />
-                                        </div>
                                         <Button type="submit" variant="destructive" :disabled="ruptureForm.processing">
                                             Confirmer la rupture
                                         </Button>

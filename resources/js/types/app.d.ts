@@ -25,6 +25,10 @@ export interface Stock {
         name: string;
         reference: string;
         packaging: string;
+        category?: {
+            id: number;
+            name: string;
+        };
     };
     location: {
         id: number;

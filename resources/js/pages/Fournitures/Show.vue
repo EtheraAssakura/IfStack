@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 interface Props {
   fourniture: {
@@ -26,35 +25,10 @@ interface Props {
         catalog_url: string | null;
       };
     }>;
-    stocks: Array<{
-      id: number;
-      estimated_quantity: number;
-      local_alert_threshold: number;
-      location: {
-        id: number;
-        name: string;
-        site: {
-          id: number;
-          name: string;
-        };
-      };
-    }>;
   };
 }
 
 const props = defineProps<Props>();
-
-const globalAlertThreshold = computed(() => {
-  return props.fourniture.stocks.reduce((sum, stock) => sum + (stock.local_alert_threshold || 0), 0);
-});
-
-const globalEstimatedQuantity = computed(() => {
-  return props.fourniture.stocks.reduce((sum, stock) => sum + stock.estimated_quantity, 0);
-});
-
-const globalStatus = computed(() => {
-  return globalEstimatedQuantity.value <= globalAlertThreshold.value ? 'En alerte' : 'Normal';
-});
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -124,28 +98,6 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <dt class="text-sm font-medium text-gray-500">Catégorie</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ fourniture?.category?.name || 'Non catégorisé' }}</dd>
                   </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">Quantité estimée globale</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ globalEstimatedQuantity }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">Seuil d'alerte global</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ globalAlertThreshold }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">État général</dt>
-                    <dd class="mt-1">
-                      <span
-                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                        :class="{
-                          'bg-red-100 text-red-800': globalStatus === 'En alerte',
-                          'bg-green-100 text-green-800': globalStatus === 'Normal',
-                        }"
-                      >
-                        {{ globalStatus }}
-                      </span>
-                    </dd>
-                  </div>
                 </div>
               </div>
             </div>
@@ -176,43 +128,6 @@ const breadcrumbs: BreadcrumbItem[] = [
                           Voir
                         </a>
                         <span v-else class="text-sm text-gray-500">-</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- État des stocks -->
-            <div class="col-span-2">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">État des stocks</h3>
-              <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Emplacement</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité estimée</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seuil d'alerte local</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">État</th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="stock in fourniture.stocks" :key="stock.id">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.location?.site?.name || '-' }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.location?.name || '-' }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.estimated_quantity }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.local_alert_threshold || '-' }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span
-                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                          :class="{
-                            'bg-red-100 text-red-800': stock.estimated_quantity <= stock.local_alert_threshold,
-                            'bg-green-100 text-green-800': stock.estimated_quantity > stock.local_alert_threshold,
-                          }"
-                        >
-                          {{ stock.estimated_quantity <= stock.local_alert_threshold ? 'En alerte' : 'Normal' }}
-                        </span>
                       </td>
                     </tr>
                   </tbody>

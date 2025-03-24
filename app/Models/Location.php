@@ -28,6 +28,14 @@ class Location extends Model
     }
 
     /**
+     * Get the etablissement that owns the location.
+     */
+    public function etablissement(): BelongsTo
+    {
+        return $this->belongsTo(Etablissement::class, 'site_id');
+    }
+
+    /**
      * Get the stock items for the location.
      */
     public function stockItems(): HasMany

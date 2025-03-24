@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +13,7 @@ import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { useDropZone } from '@vueuse/core';
+import { ChevronDown } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 interface Props {
@@ -182,6 +182,14 @@ const deleteCategory = (categoryId: number) => {
   });
 };
 
+interface CategoryResponse {
+  category: {
+    id: number;
+    name: string;
+  };
+  message: string;
+}
+
 const createCategory = () => {
   if (!form.new_category_name) return;
   
@@ -192,9 +200,20 @@ const createCategory = () => {
   categoryForm.post(route('categories.store'), {
     preserveState: true,
     preserveScroll: true,
-    onSuccess: () => {
+    headers: {
+      'Accept': 'application/json'
+    },
+    onSuccess: (response: any) => {
+      // Ajouter la nouvelle catégorie à la liste locale
+      const newCategory = {
+        id: response.category.id,
+        name: response.category.name
+      };
+      props.categories.push(newCategory);
+      
+      // Réinitialiser le formulaire et afficher le message de succès
       form.new_category_name = '';
-      successMessage.value = 'La catégorie a été ajoutée avec succès !';
+      successMessage.value = response.message;
       showSuccessMessage.value = true;
       setTimeout(() => {
         showSuccessMessage.value = false;
@@ -294,32 +313,16 @@ const submit = () => {
                 <div>
                   <Label for="category">Catégorie</Label>
                   <div class="flex gap-2">
-                    <Select
-                      id="category"
-                      v-model="form.category_id"
-                      class="mt-1 block w-full"
-                      required
+                    <Button
+                      type="button"
+                      variant="outline"
+                      class="mt-1 flex-1 justify-between"
+                      @click="showCategoryModal = true"
                     >
-                      <option value="">Sélectionner une catégorie</option>
-                      <option
-                        v-for="category in categories"
-                        :key="category.id"
-                        :value="category.id"
-                        :selected="category.id === form.category_id"
-                      >
-                        {{ category.name }}
-                      </option>
-                    </Select>
+                      <span>{{ categories.find(c => c.id === form.category_id)?.name || 'Sélectionner une catégorie' }}</span>
+                      <ChevronDown class="h-4 w-4 ml-2" />
+                    </Button>
                     <Dialog v-model:open="showCategoryModal">
-                      <DialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          class="mt-1"
-                        >
-                          Gérer les catégories
-                        </Button>
-                      </DialogTrigger>
                       <DialogContent class="sm:max-w-[425px]">
                         <DialogHeader>
                           <DialogTitle>Gestion des catégories</DialogTitle>
@@ -343,15 +346,21 @@ const submit = () => {
                               Ajouter
                             </Button>
                           </div>
-                          <div class="space-y-2">
-                            <div v-for="category in categories" :key="category.id" class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div class="space-y-2 max-h-[300px] overflow-y-auto">
+                            <div 
+                              v-for="category in categories" 
+                              :key="category.id" 
+                              class="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer"
+                              :class="{ 'bg-indigo-50': category.id === form.category_id }"
+                              @click="form.category_id = category.id; showCategoryModal = false"
+                            >
                               <span>{{ category.name }}</span>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 class="text-red-600 hover:text-red-700"
-                                @click="deleteCategory(category.id)"
+                                @click.stop="deleteCategory(category.id)"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />

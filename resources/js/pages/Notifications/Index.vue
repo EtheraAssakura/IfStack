@@ -130,7 +130,7 @@ const processedRequests = computed(() => {
                                                 </div>
                                                 <div class="text-xs text-gray-500">
                                                     <span>Créé le : </span>
-                                                    {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                                                    {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} signalé par {{ alert.users[0].name }}
                                                 </div>
                                             </div>
                                         </Link>
@@ -173,7 +173,7 @@ const processedRequests = computed(() => {
                                                 </div>
                                                 <div class="text-xs text-gray-500">
                                                     <span>Créé le : </span>
-                                                    {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                                                    {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} signalé par {{ alert.users[0].name }}
                                                 </div>
                                             </div>
                                         </Link>
@@ -209,7 +209,7 @@ const processedRequests = computed(() => {
                                                 </div>
                                                 <div class="text-xs text-gray-500">
                                                     <span>Créé le : </span>
-                                                    {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                                                    {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} par {{ request.users[0].name }}
                                                 </div>
                                             </div>
                                         </Link>
@@ -252,7 +252,7 @@ const processedRequests = computed(() => {
                                                 </div>
                                                 <div class="text-xs text-gray-500">
                                                     <span>Créé le : </span>
-                                                    {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                                                    {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} par {{ request.users[0].name }}
                                                 </div>
                                             </div>
                                         </Link>

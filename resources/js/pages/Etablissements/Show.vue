@@ -51,11 +51,12 @@ const props = defineProps<Props>();
 
 const editDialog = ref<InstanceType<typeof Dialog> | null>(null);
 const editingLocation = ref<Emplacement | null>(null);
+const isEditDialogOpen = ref(false);
 
 const breadcrumbs: BreadcrumbItemType[] = [
     {
         title: 'Établissements',
-        href: '/etablissement',
+        href: '/etablissements',
     },
     {
         title: props.etablissement.name,
@@ -87,7 +88,7 @@ const handleCreateLocation = () => {
 const handleEditLocation = (locationId: number) => {
     editLocationForm.put(route('etablissements.locations.update', [props.etablissement.id, locationId]), {
         onSuccess: () => {
-            editDialog.value?.close();
+            isEditDialogOpen.value = false;
             editingLocation.value = null;
         },
     });
@@ -103,6 +104,7 @@ const initEditForm = (emplacement: Emplacement) => {
     editingLocation.value = emplacement;
     editLocationForm.name = emplacement.name;
     editLocationForm.description = emplacement.description;
+    isEditDialogOpen.value = true;
 };
 
 
@@ -230,7 +232,7 @@ const initEditForm = (emplacement: Emplacement) => {
                                 Aucun emplacement disponible
                             </div>
                             <div v-else class="space-y-4">
-                                <Dialog ref="editDialog">
+                                <Dialog v-model:open="isEditDialogOpen">
                                     <DialogContent class="sm:max-w-[425px]">
                                         <DialogHeader>
                                             <DialogTitle>Modifier l'emplacement</DialogTitle>

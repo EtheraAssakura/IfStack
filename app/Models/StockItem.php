@@ -25,6 +25,11 @@ class StockItem extends Model
         return $this->belongsTo(Location::class);
     }
 
+    public function emplacement(): BelongsTo
+    {
+        return $this->location();
+    }
+
     public function alerts(): HasMany
     {
         return $this->hasMany(Alert::class);
