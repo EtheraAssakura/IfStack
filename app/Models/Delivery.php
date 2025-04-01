@@ -2,22 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Delivery extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'order_id',
+        'user_id',
         'delivery_date',
         'status',
-        'notes',
-        'user_id'
+        'notes'
     ];
 
     protected $casts = [
-        'delivery_date' => 'datetime'
+        'delivery_date' => 'date'
     ];
 
     public function order(): BelongsTo

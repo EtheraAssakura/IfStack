@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="Suggested Orders">
+  <AppSidebarLayout title="Suggested Orders">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Suggested Orders
@@ -97,22 +97,28 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AppSidebarLayout>
 </template>
 
-<script>
-import AppLayout from '@/Layouts/AppLayout.vue'
+<script setup lang="ts">
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue'
 import { Link } from '@inertiajs/vue3'
-import { defineComponent } from 'vue'
 
-export default defineComponent({
-  components: {
-    AppLayout,
-    Link,
-  },
+interface Suggestion {
+  id: number
+  reference: string
+  name: string
+  location: string
+  current_stock: number
+  threshold: number
+  needed_quantity: number
+  supplier?: {
+    id: number
+    name: string
+  }
+}
 
-  props: {
-    suggestions: Array,
-  },
-})
+defineProps<{
+  suggestions: Suggestion[]
+}>()
 </script> 

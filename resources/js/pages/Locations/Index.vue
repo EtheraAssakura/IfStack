@@ -62,7 +62,7 @@
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <Link :href="route('locations.show', location.id)" class="text-indigo-600 hover:text-indigo-900">
+                      <Link :href="route('sites.locations.show', [location.site_id, location.id])" class="text-indigo-600 hover:text-indigo-900">
                         {{ location.name }}
                       </Link>
                     </td>
@@ -109,6 +109,7 @@ interface Props {
     site: string
     photo_url: string | null
     stock_items_count: number
+    site_id: number
   }>
 }
 

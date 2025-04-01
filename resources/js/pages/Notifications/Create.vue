@@ -2,12 +2,12 @@
 import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const form = useForm({
     title: '',
-    description: '',
+    content: '',
 });
 
 const showSuccessModal = ref(false);
@@ -97,19 +97,19 @@ const closeModal = () => {
                             </div>
 
                             <div>
-                                <label for="description" class="block text-sm font-medium text-gray-700">
+                                <label for="content" class="block text-sm font-medium text-gray-700">
                                     Description détaillée
                                 </label>
                                 <textarea
-                                    id="description"
-                                    v-model="form.description"
+                                    id="content"
+                                    v-model="form.content"
                                     rows="6"
                                     class="mt-1 block w-full rounded-xl border-0 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200/50 transition-colors placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                                     required
                                     placeholder="Décrivez votre demande en détail, ou vous avez besoin de fournitures, si c'est urgent..."
                                 ></textarea>
-                                <div v-if="form.errors.description" class="mt-1 text-sm text-red-600">
-                                    {{ form.errors.description }}
+                                <div v-if="form.errors.content" class="mt-1 text-sm text-red-600">
+                                    {{ form.errors.content }}
                                 </div>
                             </div>
 

@@ -68,14 +68,14 @@ const handleLogout = () => {
 
 const handleTakeStock = () => {
     if (props.locationId) {
-        router.visit(route('stock.take', { locationId: props.locationId }));
+        router.visit(route('stock-items.take', { locationId: props.locationId }));
     } else {
         showLocationModal.value = true;
     }
 };
 
 const selectLocation = (locationId: number) => {
-    router.visit(route('stock.take', { locationId }));
+    router.visit(route('stock-items.take', { locationId }));
     showLocationModal.value = false;
 };
 </script>

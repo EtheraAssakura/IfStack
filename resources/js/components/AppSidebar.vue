@@ -27,7 +27,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Fournitures',
-        href: route('fournitures.index'),
+        href: route('supplies.index'),
         icon: Package,
     },
     {
@@ -37,12 +37,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Etablissements',
-        href: route('etablissements.index'),
+        href: route('sites.index'),
         icon: Building2,
     },
     {
         title: 'Stocks',
-        href: route('stocks.index'),
+        href: route('stock-items.index'),
         icon: Boxes,
     },
     {

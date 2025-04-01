@@ -154,15 +154,15 @@ const stocksEnAlerte = computed(() => {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.location.name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.location.site.name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{ stock.estimated_quantity }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.local_alert_threshold ?? stock.supply.global_alert_threshold }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.local_alert_threshold }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         <Button 
                                             variant="outline" 
                                             size="sm"
                                             as-child
                                         >
-                                            <Link :href="route('orders.create')">
-                                                Commander
+                                            <Link :href="route('stock-items.show', stock.id)">
+                                                Voir
                                             </Link>
                                         </Button>
                                     </td>

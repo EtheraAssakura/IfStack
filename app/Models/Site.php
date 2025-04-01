@@ -2,40 +2,44 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Site extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
+        'slug',
         'address',
         'city',
         'postal_code',
-        'is_headquarters',
-        'email',
         'phone',
-        'slug',
-        'plan_path'
+        'email',
+        'plan_path',
+        'is_headquarters'
     ];
 
     protected $casts = [
         'is_headquarters' => 'boolean'
     ];
 
-    public function users(): HasMany
-    {
-        return $this->hasMany(User::class);
-    }
-
     public function locations(): HasMany
     {
         return $this->hasMany(Location::class);
     }
 
-    public function stockItems(): HasMany
+    public function stockItems(): HasManyThrough
     {
-        return $this->hasMany(StockItem::class);
+        return $this->hasManyThrough(StockItem::class, Location::class);
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 
     public function usageStatistics(): HasMany

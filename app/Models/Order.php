@@ -2,25 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'order_number',
         'supplier_id',
+        'user_id',
         'order_date',
         'expected_delivery_date',
         'status',
-        'notes',
-        'user_id'
+        'notes'
     ];
 
     protected $casts = [
-        'order_date' => 'datetime',
-        'expected_delivery_date' => 'datetime'
+        'order_date' => 'date',
+        'expected_delivery_date' => 'date'
     ];
 
     public function supplier(): BelongsTo

@@ -13,33 +13,20 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Inertia\Response;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['supplier', 'user'])
-            ->latest()
-            ->get()
-            ->map(function ($order) {
-                return [
-                    'id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'supplier' => [
-                        'id' => $order->supplier->id,
-                        'name' => $order->supplier->name,
-                    ],
-                    'order_date' => $order->order_date->format('Y-m-d'),
-                    'status' => $order->status,
-                    'user' => [
-                        'id' => $order->user->id,
-                        'name' => $order->user->name,
-                    ],
-                ];
-            });
-
+        $orders = Order::with(['supplier', 'items.supply.suppliers' => function ($query) {
+            $query->select('suppliers.id', 'suppliers.name')
+                ->withPivot('supplier_reference');
+        }, 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         return Inertia::render('Orders/Index', [
-            'orders' => $orders,
+            'orders' => $orders
         ]);
     }
 

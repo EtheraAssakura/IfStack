@@ -10,7 +10,7 @@ class Alert extends Model
     use HasFactory;
 
     protected $fillable = [
-        'stock_id',
+        'stock_item_id',
         'user_id',
         'type',
         'comment',
@@ -27,15 +27,15 @@ class Alert extends Model
         parent::boot();
 
         static::creating(function ($alert) {
-            if ($alert->stock) {
-                $alert->title = ($alert->stock->estimated_quantity === 0 ? 'Alerte Rupture' : 'Alerte Stock') . ' - ' . $alert->stock->fourniture->name;
+            if ($alert->stockItem) {
+                $alert->title = ($alert->stockItem->estimated_quantity === 0 ? 'Alerte Rupture' : 'Alerte Stock') . ' - ' . $alert->stockItem->supply->name;
             }
         });
     }
 
-    public function stock()
+    public function stockItem()
     {
-        return $this->belongsTo(Stock::class);
+        return $this->belongsTo(StockItem::class);
     }
 
     public function user()

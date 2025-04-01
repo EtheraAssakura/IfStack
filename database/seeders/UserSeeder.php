@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -10,8 +12,8 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminRoleId = DB::table('roles')->where('name', 'Administrateur')->value('id');
-        $userRoleId = DB::table('roles')->where('name', 'Utilisateur')->value('id');
+        $adminRole = Role::where('name', 'Administrateur')->first();
+        $userRole = Role::where('name', 'Utilisateur')->first();
 
         // Insérer les utilisateurs
         $users = [
@@ -44,19 +46,21 @@ class UserSeeder extends Seeder
                 'email' => 'etheraassakura@gmail.com',
                 'password' => Hash::make('FK9y6=33d]Fqv:'),
                 'site_id' => DB::table('sites')->where('name', 'ISFAC Poitiers')->value('id'),
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ];
 
+        // Insérer les utilisateurs
         foreach ($users as $userData) {
-            $userId = DB::table('users')->insertGetId($userData);
+            $user = User::create($userData);
 
-            // Attribuer le rôle approprié
-            DB::table('user_role')->insert([
-                'user_id' => $userId,
-                'role_id' => $userData['email'] === 'celine.dupuis@isfac.fr' ? $adminRoleId : $userRoleId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // Associer les rôles aux utilisateurs
+            $role = $userData['email'] === 'celine.dupuis@isfac.fr' || $userData['email'] === 'etheraassakura@gmail.com'
+                ? $adminRole
+                : $userRole;
+
+            $user->roles()->attach($role);
         }
     }
 }

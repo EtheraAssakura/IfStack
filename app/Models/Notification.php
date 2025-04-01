@@ -10,14 +10,16 @@ class Notification extends Model
     use HasFactory;
 
     protected $fillable = [
-        'type',
         'title',
-        'message',
-        'is_read',
+        'content',
+        'type',
+        'is_read'
     ];
 
     protected $casts = [
-        'is_read' => 'boolean'
+        'is_read' => 'boolean',
+        'data' => 'array',
+        'read_at' => 'datetime'
     ];
 
     public function scopeLatestAlerts($query)

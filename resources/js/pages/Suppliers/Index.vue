@@ -72,9 +72,15 @@ const breadcrumbs: BreadcrumbItemType[] = [
                                         <td class="px-6 py-4 whitespace-nowrap">{{ supplier.email ? supplier.email : '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ supplier.phone ? supplier.phone : '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <Link :href="supplier.catalog_url" target="_blank" class="text-blue-500 hover:text-blue-700">
-                                                {{ supplier.catalog_url ? supplier.catalog_url : '-' }}
+                                            <Link 
+                                                v-if="supplier.catalog_url"
+                                                :href="supplier.catalog_url"
+                                                target="_blank"
+                                                class="text-blue-500 hover:text-blue-700"
+                                            >
+                                                Voir le catalogue
                                             </Link>
+                                            <span v-else>-</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <Link

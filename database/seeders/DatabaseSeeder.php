@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             SupplySeeder::class,
             LocationSeeder::class,
             StockItemSeeder::class,
-            ReportingSeeder::class,
             OrderSeeder::class,
             OrderItemSeeder::class,
             NotificationSeeder::class,

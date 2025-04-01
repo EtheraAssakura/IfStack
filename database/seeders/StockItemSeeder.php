@@ -15,10 +15,10 @@ class StockItemSeeder extends Seeder
         $classeurId = DB::table('supplies')->where('reference', 'CLA-A4-80')->value('id');
 
         // Récupérer les IDs des emplacements
-        $salleReunionId = DB::table('locations')->where('qr_code', 'POI-SR-001')->value('id');
-        $salleFormateursId = DB::table('locations')->where('qr_code', 'POI-SF-001')->value('id');
-        $bureauNiortId = DB::table('locations')->where('qr_code', 'NIO-BA-001')->value('id');
-        $accueilLRId = DB::table('locations')->where('qr_code', 'LR-ACC-001')->value('id');
+        $salleReunionId = DB::table('locations')->where('name', 'Salle de réunion')->value('id');
+        $salleFormateursId = DB::table('locations')->where('name', 'Salle des formateurs')->value('id');
+        $bureauNiortId = DB::table('locations')->where('name', 'Bureau administratif')->value('id');
+        $accueilLRId = DB::table('locations')->where('name', 'Accueil')->value('id');
 
         // Insérer les stocks initiaux
         DB::table('stock_items')->insert([

@@ -8,7 +8,8 @@ interface Notification {
     id: number;
     type: string;
     title: string;
-    message: string;
+    content: string;
+    comment: string;
     is_read: boolean;
     created_at: string;
     users: {
@@ -54,7 +55,7 @@ try {
                 id: alert.id,
                 type: alert.type,
                 title: alert.title,
-                message: alert.message,
+                content: alert.content,
                 is_read: alert.is_read,
                 created_at: alert.created_at
             });
@@ -110,77 +111,42 @@ const processedRequests = computed(() => {
                     <!-- Alertes -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-fit">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold mb-4">Alertes</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Alertes</h3>
+                                <Link
+                                    :href="route('notifications.archive', { type: 'alert' })"
+                                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                >
+                                    <span>Voir l'historique</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </Link>
+                            </div>
                             
                             <!-- Alertes non traitées -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">Non traitées</h4>
-                                <div class="space-y-4">
-                                    <template v-if="latestAlerts && latestAlerts.filter(alert => !alert.is_read).length > 0">
-                                        <Link
-                                            v-for="alert in latestAlerts.filter(alert => !alert.is_read)"
-                                            :key="alert.id"
-                                            :href="route('notifications.show', [alert.id, { type: 'alert' }])"
-                                            class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors h-[120px] bg-red-50"
-                                        >
-                                            <div class="flex flex-col h-full justify-between">
-                                                <div>
-                                                    <h4 class="font-medium">{{ alert.title }}</h4>
-                                                    <p class="text-sm text-gray-600 mt-1 line-clamp-1">{{ alert.message }}</p>
-                                                </div>
-                                                <div class="text-xs text-gray-500">
-                                                    <span>Créé le : </span>
-                                                    {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} signalé par {{ alert.users[0].name }}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </template>
-                                    <div v-else class="text-gray-500 text-center py-4">
-                                        Aucune alerte non traitée
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Alertes traitées -->
-                            <div>
-                                <button 
-                                    @click="showProcessedAlerts = !showProcessedAlerts"
-                                    class="w-full text-left text-md font-medium text-gray-700 mb-3 flex items-center justify-between hover:text-gray-900"
-                                >
-                                    <span>Traitées</span>
-                                    <svg 
-                                        class="w-5 h-5 transform transition-transform" 
-                                        :class="{ 'rotate-180': showProcessedAlerts }"
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
+                            <div class="space-y-4">
+                                <template v-if="latestAlerts && latestAlerts.filter(alert => !alert.is_read).length > 0">
+                                    <Link
+                                        v-for="alert in latestAlerts.filter(alert => !alert.is_read)"
+                                        :key="alert.id"
+                                        :href="route('notifications.show', [alert.id, { type: 'alert' }])"
+                                        class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors h-[120px] bg-red-50"
                                     >
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div v-show="showProcessedAlerts" class="space-y-4">
-                                    <template v-if="processedAlerts.length > 0">
-                                        <Link
-                                            v-for="alert in processedAlerts"
-                                            :key="alert.id"
-                                            :href="route('notifications.show', [alert.id, { type: 'alert' }])"
-                                            class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors h-[120px] bg-white"
-                                        >
-                                            <div class="flex flex-col h-full justify-between">
-                                                <div>
-                                                    <h4 class="font-medium">{{ alert.title }}</h4>
-                                                    <p class="text-sm text-gray-600 mt-1 line-clamp-1">{{ alert.message }}</p>
-                                                </div>
-                                                <div class="text-xs text-gray-500">
-                                                    <span>Créé le : </span>
-                                                    {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} signalé par {{ alert.users[0].name }}
-                                                </div>
+                                        <div class="flex flex-col h-full justify-between">
+                                            <div>
+                                                <h4 class="font-medium">{{ alert.title }}</h4>
+                                                <p class="text-sm text-gray-600 mt-1 line-clamp-1">{{ alert.comment }}</p>
                                             </div>
-                                        </Link>
-                                    </template>
-                                    <div v-else class="text-gray-500 text-center py-4">
-                                        Aucune alerte traitée
-                                    </div>
+                                            <div class="text-xs text-gray-500">
+                                                <span>Créé le : </span>
+                                                {{ new Date(alert.created_at).toLocaleDateString() }} à {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} signalé par {{ alert.users[0].name }}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </template>
+                                <div v-else class="text-gray-500 text-center py-4">
+                                    Aucune alerte non traitée
                                 </div>
                             </div>
                         </div>
@@ -189,77 +155,42 @@ const processedRequests = computed(() => {
                     <!-- Demandes -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-fit">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold mb-4">Demandes</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Demandes</h3>
+                                <Link
+                                    :href="route('notifications.archive', { type: 'request' })"
+                                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                >
+                                    <span>Voir l'historique</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </Link>
+                            </div>
                             
                             <!-- Demandes non traitées -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-medium text-gray-700 mb-3">Non traitées</h4>
-                                <div class="space-y-4">
-                                    <template v-if="latestRequests && latestRequests.filter(request => !request.is_read).length > 0">
-                                        <Link
-                                            v-for="request in latestRequests.filter(request => !request.is_read)"
-                                            :key="request.id"
-                                            :href="route('notifications.show', [request.id, { type: 'request' }])"
-                                            class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors h-[120px] bg-blue-50"
-                                        >
-                                            <div class="flex flex-col h-full justify-between">
-                                                <div>
-                                                    <h4 class="font-medium">{{ request.title }}</h4>
-                                                    <p class="text-sm text-gray-600 mt-1 line-clamp-1">{{ request.message }}</p>
-                                                </div>
-                                                <div class="text-xs text-gray-500">
-                                                    <span>Créé le : </span>
-                                                    {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} par {{ request.users[0].name }}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </template>
-                                    <div v-else class="text-gray-500 text-center py-4">
-                                        Aucune demande non traitée
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Demandes traitées -->
-                            <div>
-                                <button 
-                                    @click="showProcessedRequests = !showProcessedRequests"
-                                    class="w-full text-left text-md font-medium text-gray-700 mb-3 flex items-center justify-between hover:text-gray-900"
-                                >
-                                    <span>Traîtées</span>
-                                    <svg 
-                                        class="w-5 h-5 transform transition-transform" 
-                                        :class="{ 'rotate-180': showProcessedRequests }"
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
+                            <div class="space-y-4">
+                                <template v-if="latestRequests && latestRequests.filter(request => !request.is_read).length > 0">
+                                    <Link
+                                        v-for="request in latestRequests.filter(request => !request.is_read)"
+                                        :key="request.id"
+                                        :href="route('notifications.show', [request.id, { type: 'request' }])"
+                                        class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors h-[120px] bg-blue-50"
                                     >
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div v-show="showProcessedRequests" class="space-y-4">
-                                    <template v-if="processedRequests.length > 0">
-                                        <Link
-                                            v-for="request in processedRequests"
-                                            :key="request.id"
-                                            :href="route('notifications.show', [request.id, { type: 'request' }])"
-                                            class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors h-[120px] bg-white"
-                                        >
-                                            <div class="flex flex-col h-full justify-between">
-                                                <div>
-                                                    <h4 class="font-medium">{{ request.title }}</h4>
-                                                    <p class="text-sm text-gray-600 mt-1 line-clamp-1">{{ request.message }}</p>
-                                                </div>
-                                                <div class="text-xs text-gray-500">
-                                                    <span>Créé le : </span>
-                                                    {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} par {{ request.users[0].name }}
-                                                </div>
+                                        <div class="flex flex-col h-full justify-between">
+                                            <div>
+                                                <h4 class="font-medium">{{ request.title }}</h4>
+                                                <p class="text-sm text-gray-600 mt-1 line-clamp-1">{{ request.content }}</p>
                                             </div>
-                                        </Link>
-                                    </template>
-                                    <div v-else class="text-gray-500 text-center py-4">
-                                        Aucune demande traitée
-                                    </div>
+                                            <div class="text-xs text-gray-500">
+                                                <span>Créé le : </span>
+                                                {{ new Date(request.created_at).toLocaleDateString() }} à {{ new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }} par {{ request.users[0].name }}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </template>
+                                <div v-else class="text-gray-500 text-center py-4">
+                                    Aucune demande non traitée
                                 </div>
                             </div>
                         </div>

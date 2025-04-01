@@ -26,24 +26,24 @@
                 </div>
 
                 <div class="space-y-2">
-                  <Label for="etablissement_id">Établissement</Label>
+                  <Label for="site_id">Site</Label>
                   <select
-                    id="etablissement_id"
-                    v-model="form.etablissement_id"
+                    id="site_id"
+                    v-model="form.site_id"
                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     required
                   >
-                    <option value="">Sélectionnez un établissement</option>
+                    <option value="">Sélectionnez un site</option>
                     <option
-                      v-for="etablissement in etablissements"
-                      :key="etablissement.id"
-                      :value="etablissement.id"
+                      v-for="site in sites"
+                      :key="site.id"
+                      :value="site.id"
                     >
-                      {{ etablissement.name }}
+                      {{ site.name }}
                     </option>
                   </select>
-                  <div v-if="form.errors.etablissement_id" class="text-sm text-red-600">
-                    {{ form.errors.etablissement_id }}
+                  <div v-if="form.errors.site_id" class="text-sm text-red-600">
+                    {{ form.errors.site_id }}
                   </div>
                 </div>
 
@@ -105,13 +105,11 @@ import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 
-interface Etablissement {
-    id: number;
-    name: string;
-}
-
 interface Props {
-    etablissements: Etablissement[];
+    sites: Array<{
+        id: number;
+        name: string;
+    }>;
 }
 
 const props = defineProps<Props>();
@@ -119,7 +117,7 @@ const props = defineProps<Props>();
 const form = useForm({
     name: '',
     description: '',
-    etablissement_id: '',
+    site_id: '',
     photo: null as File | null,
 });
 

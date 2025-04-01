@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :title="'Créer une Nouvelle Commande'" :breadcrumbs="breadcrumbs">
+  <AppSidebarLayout :title="'Créer une Nouvelle Commande'" :breadcrumbs="breadcrumbs">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Créer une Nouvelle Commande
@@ -214,11 +214,11 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AppSidebarLayout>
 </template>
 
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue'
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue'
 import type { BreadcrumbItemType } from '@/types'
 import { Link, useForm } from '@inertiajs/vue3'
 import { Pen, Trash2 } from 'lucide-vue-next'
@@ -284,7 +284,7 @@ const newItem = ref({
 
 const availableSupplies = computed(() => {
   return props.supplies.filter(supply => {
-    const notInOrder = !form.items.some(item => item.supply_id === supply.id) || 
+    const notInOrder = !form.items.some((item: OrderItem) => item.supply_id === supply.id) || 
       (editingItemIndex.value !== null && form.items[editingItemIndex.value].supply_id === supply.id)
     const hasSelectedSupplier = supply.suppliers.some(s => s.id === form.supplier_id)
     return notInOrder && hasSelectedSupplier
@@ -380,7 +380,7 @@ const updateUnitPrice = () => {
     return
   }
 
-  const supply = props.supplies.find(s => s.id === newItem.value.supply_id)
+  const supply = props.supplies.find(s => s.id === Number(newItem.value.supply_id))
   if (!supply) {
     newItem.value.unit_price = 0
     return
@@ -424,7 +424,7 @@ const suggestItems = () => {
 
       if (totalQuantity > 0) {
         // Vérifier si l'article existe déjà dans la commande
-        const existingItemIndex = form.items.findIndex(item => item.supply_id === supply.id)
+        const existingItemIndex = form.items.findIndex((item: OrderItem) => item.supply_id === supply.id)
         
         if (existingItemIndex !== -1) {
           // Mettre à jour la quantité de l'article existant

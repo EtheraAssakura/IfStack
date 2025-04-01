@@ -15,7 +15,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de fournitures bureau',
-                'message' => 'Besoin de stylos, cahiers et post-its',
+                'content' => 'Besoin de stylos, cahiers et post-its',
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -23,7 +23,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de matériel informatique',
-                'message' => 'Besoin d\'une nouvelle souris sans fil',
+                'content' => 'Besoin d\'une nouvelle souris sans fil',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -31,7 +31,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de mobilier',
-                'message' => 'Besoin d\'une nouvelle chaise ergonomique',
+                'content' => 'Besoin d\'une nouvelle chaise ergonomique',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -39,7 +39,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de fournitures salle de cours',
-                'message' => 'Besoin de marqueurs pour tableau blanc',
+                'content' => 'Besoin de marqueurs pour tableau blanc',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -47,7 +47,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de maintenance',
-                'message' => 'Problème avec le climatiseur',
+                'content' => 'Problème avec le climatiseur',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -55,7 +55,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de fournitures sanitaires',
-                'message' => 'Besoin de papier toilette et savon',
+                'content' => 'Besoin de papier toilette et savon',
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -63,7 +63,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de matériel pédagogique',
-                'message' => 'Besoin de nouveaux manuels',
+                'content' => 'Besoin de nouveaux manuels',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -71,7 +71,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de fournitures cuisine',
-                'message' => 'Besoin de vaisselle et ustensiles',
+                'content' => 'Besoin de vaisselle et ustensiles',
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -79,7 +79,7 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de matériel sportif',
-                'message' => 'Besoin de nouveaux ballons',
+                'content' => 'Besoin de nouveaux ballons',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -87,11 +87,11 @@ class NotificationSeeder extends Seeder
             [
                 'type' => 'request',
                 'title' => 'Demande de fournitures entretien',
-                'message' => 'Besoin de produits de nettoyage',
+                'content' => 'Besoin de produits de nettoyage',
                 'is_read' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
+            ]
         ];
 
         foreach ($notifications as $notification) {

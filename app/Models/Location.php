@@ -16,7 +16,7 @@ class Location extends Model
         'description',
         'site_id',
         'photo_path',
-        'qr_code',
+        'qr_code'
     ];
 
     /**
@@ -25,14 +25,6 @@ class Location extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
-    }
-
-    /**
-     * Get the etablissement that owns the location.
-     */
-    public function etablissement(): BelongsTo
-    {
-        return $this->belongsTo(Etablissement::class, 'site_id');
     }
 
     /**

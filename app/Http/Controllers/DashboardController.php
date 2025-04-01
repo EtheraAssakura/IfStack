@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Alerte;
+use App\Models\Alert;
 use App\Models\Order;
 use App\Models\Supply;
 use App\Models\Delivery;
@@ -33,7 +33,6 @@ class DashboardController extends Controller
                 'supply_id' => $stock->supply_id,
                 'estimated_quantity' => $stock->estimated_quantity,
                 'local_alert_threshold' => $stock->local_alert_threshold,
-                'global_alert_threshold' => $stock->supply->alert_threshold,
                 'effective_threshold' => $effectiveThreshold,
                 'is_below_threshold' => $stock->estimated_quantity <= $effectiveThreshold
             ];
@@ -46,7 +45,7 @@ class DashboardController extends Controller
             return [
                 'id' => $stock->id,
                 'supply_id' => $stock->supply_id,
-                'supply_name' => $stock->supply->name,
+                'supply_name' => $stock->supply ? $stock->supply->name : 'Fourniture inconnue',
                 'estimated_quantity' => $stock->estimated_quantity,
                 'local_alert_threshold' => $stock->local_alert_threshold,
                 'effective_threshold' => $effectiveThreshold,
@@ -55,7 +54,7 @@ class DashboardController extends Controller
         });
 
         // Alertes non traitées
-        $unhandledAlerts = Alerte::with(['stock.fourniture', 'stock.emplacement.etablissement', 'user'])
+        $unhandledAlerts = Alert::with(['stockItem.supply', 'stockItem.location.site', 'user'])
             ->where('processed', false)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -128,7 +127,7 @@ class DashboardController extends Controller
 
         // Top produits en alerte
         $topAlertProducts = DB::table('alerts')
-            ->join('stock_items', 'stock_items.id', '=', 'alerts.stock_id')
+            ->join('stock_items', 'stock_items.id', '=', 'alerts.stock_item_id')
             ->join('supplies', 'supplies.id', '=', 'stock_items.supply_id')
             ->select('supplies.name', 'supplies.reference', DB::raw('COUNT(*) as total_alerts'))
             ->groupBy('supplies.id', 'supplies.name', 'supplies.reference')

@@ -1,24 +1,25 @@
 <?php
 
-use App\Http\Controllers\CommandeController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\FournitureController;
-use App\Http\Controllers\LivraisonController;
-use App\Http\Controllers\StockController;
-use App\Http\Controllers\EtablissementController;
+use App\Http\Controllers\SupplyController;
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\StockItemController;
+use App\Http\Controllers\SiteController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ErrorController;
+use App\Http\Controllers\QrScanController;
+use App\Http\Controllers\AlertController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
-use Inertia\Inertia;
+
 
 // Routes d'authentification
 require __DIR__ . '/auth.php';
@@ -33,13 +34,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('welcome');
 
     // Route pour la prise de fournitures
-    Route::get('/stock/take', [StockController::class, 'take'])->name('stock.take');
-    Route::post('/stock/take/{stock}', [StockController::class, 'takeStock'])->name('stock.take.submit');
-    Route::post('/stocks/{stock}/signal-rupture', [StockController::class, 'signalRupture'])->name('stocks.signal-rupture');
+    Route::get('/stock/take', [StockItemController::class, 'take'])->name('stock-items.take');
+    Route::post('/stock/take/{stockItem}', [StockItemController::class, 'takeStock'])->name('stock-items.take.submit');
 
     // Routes API pour les sites
-    Route::get('/api/sites', [EtablissementController::class, 'apiIndex'])->name('api.sites.index');
-    Route::get('/api/sites/{site}', [EtablissementController::class, 'apiShow'])->name('api.sites.show');
+    Route::get('/api/sites', [SiteController::class, 'apiIndex'])->name('api.sites.index');
+    Route::get('/api/sites/{site}', [SiteController::class, 'apiShow'])->name('api.sites.show');
 
     // Route pour la création de notifications Utilisateur
     Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
@@ -47,7 +47,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('users', UserController::class);
@@ -55,71 +54,67 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('suppliers', SupplierController::class);
     // Routes des stocks
-    Route::get('/stocks', [StockController::class, 'index'])->name('stocks.index');
-    Route::get('/stocks/sites', [StockController::class, 'sites'])->name('stocks.sites');
-    Route::get('/stocks/by-site', [StockController::class, 'stocksBySite'])->name('stocks.by-site');
-    Route::get('/stocks/create', [StockController::class, 'create'])->name('stocks.create');
-    Route::post('/stocks', [StockController::class, 'store'])->name('stocks.store');
-    Route::get('/stocks/{stock}', [StockController::class, 'show'])->name('stocks.show');
-    Route::get('/stocks/{stock}/edit', [StockController::class, 'edit'])->name('stocks.edit');
-    Route::put('/stocks/{stock}', [StockController::class, 'update'])->name('stocks.update');
-    Route::get('/stocks/scan/{qrCode}', [StockController::class, 'scanQr'])->name('stocks.scan');
+    Route::get('/stocks', [StockItemController::class, 'index'])->name('stock-items.index');
+    Route::get('/stocks/sites', [StockItemController::class, 'sites'])->name('stock-items.sites');
+    Route::get('/stocks/by-site', [StockItemController::class, 'stocksBySite'])->name('stock-items.by-site');
+    Route::get('/stocks/create', [StockItemController::class, 'create'])->name('stock-items.create');
+    Route::post('/stocks', [StockItemController::class, 'store'])->name('stock-items.store');
+    Route::get('/stocks/{stockItem}', [StockItemController::class, 'show'])->name('stock-items.show');
+    Route::get('/stocks/{stockItem}/edit', [StockItemController::class, 'edit'])->name('stock-items.edit');
+    Route::put('/stocks/{stockItem}', [StockItemController::class, 'update'])->name('stock-items.update');
+    Route::get('/stocks/scan/{qrCode}', [QrScanController::class, 'scan'])->name('stock-items.scan');
+    Route::post('/stocks/{stockItem}/signal-rupture', [StockItemController::class, 'signalRupture'])->name('stock-items.signal-rupture');
 
     // Routes des fournitures
-    Route::get('/fournitures', [FournitureController::class, 'index'])->name('fournitures.index');
-    Route::get('/fournitures/create', [FournitureController::class, 'create'])->name('fournitures.create');
-    Route::post('/fournitures', [FournitureController::class, 'store'])->name('fournitures.store');
-    Route::get('/fournitures/{fourniture}', [FournitureController::class, 'show'])->name('fournitures.show');
-    Route::get('/fournitures/{fourniture}/edit', [FournitureController::class, 'edit'])->name('fournitures.edit');
-    Route::put('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
-    Route::post('/fournitures/{fourniture}', [FournitureController::class, 'update'])->name('fournitures.update');
-    Route::delete('/fournitures/{fourniture}', [FournitureController::class, 'destroy'])->name('fournitures.destroy');
-    Route::delete('/fournitures/{fourniture}/image', [FournitureController::class, 'removeImage'])->name('fournitures.remove-image');
-
-    // Commandes
-    Route::resource('commandes', CommandeController::class);
-    Route::get('/commandes/{commande}/excel', [CommandeController::class, 'exportExcel'])->name('commandes.excel');
-    Route::post('/commandes/{commande}/valider', [CommandeController::class, 'valider'])->name('commandes.valider');
-    Route::post('/commandes/{commande}/annuler', [CommandeController::class, 'annuler'])->name('commandes.annuler');
+    Route::get('/fournitures', [SupplyController::class, 'index'])->name('supplies.index');
+    Route::get('/fournitures/create', [SupplyController::class, 'create'])->name('supplies.create');
+    Route::post('/fournitures', [SupplyController::class, 'store'])->name('supplies.store');
+    Route::get('/fournitures/{supply}', [SupplyController::class, 'show'])->name('supplies.show');
+    Route::get('/fournitures/{supply}/edit', [SupplyController::class, 'edit'])->name('supplies.edit');
+    Route::put('/fournitures/{supply}', [SupplyController::class, 'update'])->name('supplies.update');
+    Route::post('/fournitures/{supply}', [SupplyController::class, 'update'])->name('supplies.update');
+    Route::delete('/fournitures/{supply}', [SupplyController::class, 'destroy'])->name('supplies.destroy');
+    Route::delete('/fournitures/image/{supply}', [SupplyController::class, 'removeImage'])->name('supplies.remove-image');
 
     // Livraisons
-    Route::get('/livraisons', [LivraisonController::class, 'index'])->name('livraisons.index');
-    Route::get('/livraisons/calendar', [LivraisonController::class, 'calendar'])->name('livraisons.calendar');
-    Route::get('/livraisons/create/{commande}', [LivraisonController::class, 'create'])->name('livraisons.create');
-    Route::post('/livraisons/{commande}', [LivraisonController::class, 'store'])->name('livraisons.store');
-    Route::get('/livraisons/{livraison}', [LivraisonController::class, 'show'])->name('livraisons.show');
-    Route::post('/livraisons/{livraison}/effectuer', [LivraisonController::class, 'effectuer'])->name('livraisons.effectuer');
-    Route::get('/livraisons/{livraison}/bon', [LivraisonController::class, 'generateBonLivraison'])->name('livraisons.bon');
+    Route::get('/livraisons', [DeliveryController::class, 'index'])->name('livraisons.index');
+    Route::get('/livraisons/calendar', [DeliveryController::class, 'calendar'])->name('livraisons.calendar');
+    Route::get('/livraisons/create/{commande}', [DeliveryController::class, 'create'])->name('livraisons.create');
+    Route::post('/livraisons/{commande}', [DeliveryController::class, 'store'])->name('livraisons.store');
+    Route::get('/livraisons/{livraison}', [DeliveryController::class, 'show'])->name('livraisons.show');
+    Route::post('/livraisons/{livraison}/effectuer', [DeliveryController::class, 'effectuer'])->name('livraisons.effectuer');
+    Route::get('/livraisons/{livraison}/bon', [DeliveryController::class, 'generateBonLivraison'])->name('livraisons.bon');
 
     // Établissements
-    Route::get('/etablissements', [EtablissementController::class, 'index'])->name('etablissements.index');
-    Route::get('/etablissements/create', [EtablissementController::class, 'create'])->name('etablissements.create');
-    Route::post('/etablissements', [EtablissementController::class, 'store'])->name('etablissements.store');
-    Route::get('/etablissements/{etablissement}', [EtablissementController::class, 'show'])->name('etablissements.show');
-    Route::get('/etablissements/{etablissement}/edit', [EtablissementController::class, 'edit'])->name('etablissements.edit');
-    Route::put('/etablissements/{etablissement}', [EtablissementController::class, 'update'])->name('etablissements.update');
-    Route::post('/etablissements/{etablissement}', [EtablissementController::class, 'update'])->name('etablissements.update');
-    Route::delete('/etablissements/{etablissement}', [EtablissementController::class, 'destroy'])->name('etablissements.destroy');
-    Route::delete('/etablissements/{etablissement}/plan', [EtablissementController::class, 'removePlan'])->name('etablissements.remove-plan');
+    Route::get('/etablissements', [SiteController::class, 'index'])->name('sites.index');
+    Route::get('/etablissements/create', [SiteController::class, 'create'])->name('sites.create');
+    Route::post('/etablissements', [SiteController::class, 'store'])->name('sites.store');
+    Route::get('/etablissements/{site}', [SiteController::class, 'show'])->name('sites.show');
+    Route::get('/etablissements/{site}/edit', [SiteController::class, 'edit'])->name('sites.edit');
+    Route::put('/etablissements/{site}', [SiteController::class, 'update'])->name('sites.update');
+    Route::post('/etablissements/{site}', [SiteController::class, 'update'])->name('sites.update');
+    Route::delete('/etablissements/{site}', [SiteController::class, 'destroy'])->name('sites.destroy');
+    Route::delete('/etablissements/{site}/plan', [SiteController::class, 'removePlan'])->name('sites.remove-plan');
 
     // Emplacements dans les établissements
-    Route::post('/etablissements/{etablissement}/locations', [LocationController::class, 'store'])->name('etablissements.locations.store');
-    Route::get('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'show'])->name('etablissements.locations.show');
-    Route::put('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'update'])->name('etablissements.locations.update');
-    Route::post('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'update'])->name('etablissements.locations.update');
-    Route::delete('/etablissements/{etablissement}/locations/{location}', [LocationController::class, 'destroy'])->name('etablissements.locations.destroy');
-    Route::post('/etablissements/{etablissement}/locations/{location}/upload-photo', [LocationController::class, 'uploadPhoto'])->name('etablissements.locations.upload-photo');
+    Route::post('/etablissements/{site:id}/locations', [LocationController::class, 'store'])->name('sites.locations.store');
+    Route::get('/etablissements/{site:id}/locations/{location:id}', [LocationController::class, 'show'])->name('sites.locations.show');
+    Route::put('/etablissements/{site:id}/locations/{location:id}', [LocationController::class, 'update'])->name('sites.locations.update');
+    Route::post('/etablissements/{site:id}/locations/{location:id}', [LocationController::class, 'update'])->name('sites.locations.update');
+    Route::delete('/etablissements/{site:id}/locations/{location:id}', [LocationController::class, 'destroy'])->name('sites.locations.destroy');
+    Route::post('/etablissements/{site:id}/locations/{location:id}/upload-photo', [LocationController::class, 'uploadPhoto'])->name('sites.locations.upload-photo');
 
     Route::put('/notifications/{id}/process', [NotificationController::class, 'process'])->name('notifications.process');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
 
-    // Notifications
+    // Routes des notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::get('/notifications/archive', [NotificationController::class, 'archive'])->name('notifications.archive');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
 
     Route::resource('orders', OrderController::class);
     Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
@@ -129,7 +124,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('orders/suggest', [OrderController::class, 'suggestOrders'])->name('orders.suggest');
 
     // Route d'export des stocks
-    Route::get('/stocks/export/{site?}', [StockController::class, 'export'])->name('stocks.export');
+    Route::get('/stocks/export/{site?}', [StockItemController::class, 'export'])->name('stocks.export');
 });
 
 // Routes d'erreur

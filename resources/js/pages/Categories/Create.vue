@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="Nouvelle catégorie">
+  <AppSideBar title="Nouvelle catégorie">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Nouvelle catégorie
@@ -8,62 +8,70 @@
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-          <div class="p-6 bg-white border-b border-gray-200">
-            <form @submit.prevent="form.post(route('categories.store'))">
-              <div class="mb-4">
-                <InputLabel for="name" value="Nom" />
-                <TextInput
-                  id="name"
-                  type="text"
-                  class="mt-1 block w-full"
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+          <form @submit.prevent="submit">
+            <div class="grid grid-cols-1 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">
+                  Nom
+                </label>
+                <input
                   v-model="form.name"
+                  type="text"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   required
-                  autofocus
                 />
-                <InputError class="mt-2" :message="form.errors.name" />
               </div>
 
-              <div class="mb-4">
-                <InputLabel for="description" value="Description" />
+              <div>
+                <label class="block text-sm font-medium text-gray-700">
+                  Description
+                </label>
                 <textarea
-                  id="description"
-                  class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                   v-model="form.description"
                   rows="3"
-                />
-                <InputError class="mt-2" :message="form.errors.description" />
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                ></textarea>
               </div>
+            </div>
 
-              <div class="flex items-center justify-end mt-4">
-                <Link
-                  :href="route('categories.index')"
-                  class="mr-4 text-gray-600 hover:text-gray-900"
-                >
-                  Annuler
-                </Link>
-                <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                  Créer la catégorie
-                </PrimaryButton>
-              </div>
-            </form>
-          </div>
+            <div class="mt-6 flex justify-end space-x-4">
+              <Link
+                :href="route('categories.index')"
+                class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400"
+              >
+                Annuler
+              </Link>
+              <button
+                type="submit"
+                class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700"
+                :disabled="form.processing"
+              >
+                Créer
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AppSideBar>
 </template>
 
 <script setup lang="ts">
-import InputError from '@/Components/InputError.vue'
-import InputLabel from '@/Components/InputLabel.vue'
-import PrimaryButton from '@/Components/PrimaryButton.vue'
-import TextInput from '@/Components/TextInput.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
+import AppSideBar from '@/components/AppSidebar.vue'
 import { Link, useForm } from '@inertiajs/vue3'
 
-const form = useForm({
+interface FormData {
+  name: string;
+  description: string;
+}
+
+const form = useForm<FormData>({
   name: '',
-  description: ''
-})
+  description: '',
+});
+
+const submit = () => {
+  form.post(route('categories.store'));
+};
 </script>

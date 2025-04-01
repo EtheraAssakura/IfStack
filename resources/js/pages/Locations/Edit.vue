@@ -25,19 +25,19 @@
                 </div>
 
                 <div>
-                  <Label for="etablissement_id">Établissement</Label>
+                  <Label for="site_id">Site</Label>
                   <select
-                    id="etablissement_id"
-                    v-model="form.etablissement_id"
+                    id="site_id"
+                    v-model="form.site_id"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                     required
                   >
-                    <option v-for="etablissement in etablissements" :key="etablissement.id" :value="etablissement.id">
-                      {{ etablissement.name }}
+                    <option v-for="site in sites" :key="site.id" :value="site.id">
+                      {{ site.name }}
                     </option>
                   </select>
-                  <div v-if="form.errors.etablissement_id" class="text-sm text-red-600">
-                    {{ form.errors.etablissement_id }}
+                  <div v-if="form.errors.site_id" class="text-sm text-red-600">
+                    {{ form.errors.site_id }}
                   </div>
                 </div>
 
@@ -87,7 +87,7 @@
                 <Button
                   type="button"
                   variant="secondary"
-                  @click="router.visit(route('etablissements.locations.show', [props.location.etablissement.id, props.location.id]))"
+                  @click="router.visit(route('locations.show', location.id))"
                 >
                   Annuler
                 </Button>
@@ -118,7 +118,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { useDropZone } from '@vueuse/core';
 import { ref } from 'vue';
 
-interface Etablissement {
+interface Site {
   id: number;
   name: string;
 }
@@ -127,14 +127,14 @@ interface Location {
   id: number;
   name: string;
   description: string;
-  etablissement_id: number;
+  site_id: number;
   photo_path: string | null;
-  etablissement: Etablissement;
+  site: Site;
 }
 
 interface Props {
   location: Location;
-  etablissements: Etablissement[];
+  sites: Site[];
 }
 
 const props = defineProps<Props>();
@@ -145,7 +145,7 @@ const preview = ref<string | null>(props.location.photo_path);
 const form = useForm({
   name: props.location.name,
   description: props.location.description,
-  etablissement_id: props.location.etablissement_id,
+  site_id: props.location.site_id,
   photo: null as File | null,
   _method: 'PUT'
 });
@@ -207,38 +207,32 @@ const removeImage = () => {
 
 const breadcrumbs: BreadcrumbItemType[] = [
   {
-    title: 'Établissements',
-    href: route('etablissements.index'),
+    title: 'Sites',
+    href: route('sites.index'),
   },
   {
-    title: props.location.etablissement.name,
-    href: route('etablissements.show', props.location.etablissement.id),
+    title: props.location.site.name,
+    href: route('sites.show', props.location.site.id),
   },
   {
     title: props.location.name,
-    href: route('etablissements.locations.show', {
-      etablissement: props.location.etablissement.id,
-      location: props.location.id
-    }),
+    href: route('locations.show', props.location.id),
   },
   {
     title: 'Modifier',
-    href: route('etablissements.locations.edit', {
-      etablissement: props.location.etablissement.id,
-      location: props.location.id
-    }),
+    href: route('locations.edit', props.location.id),
   },
 ];
 
 const handleSubmit = () => {
   form.transform(data => ({
     ...data
-  })).post(route('etablissements.locations.update', [props.location.etablissement.id, props.location.id]), {
+  })).post(route('locations.update', props.location.id), {
     preserveScroll: true,
     onSuccess: () => {
       form.reset();
       preview.value = null;
-      router.visit(route('etablissements.locations.show', [props.location.etablissement.id, props.location.id]));
+      router.visit(route('locations.show', props.location.id));
     },
     onError: (errors: Record<string, string>) => {
       console.error('Erreurs de validation:', errors);

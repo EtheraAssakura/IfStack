@@ -1,5 +1,101 @@
+<script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue'
+import type { BreadcrumbItemType } from '@/types'
+import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
+import { MoreVertical } from 'lucide-vue-next'
+
+interface Order {
+  id: number;
+  order_number: string;
+  supplier: {
+    id: number;
+    name: string;
+  };
+  order_date: string;
+  status: string;
+  items: Array<{
+    supply: {
+      suppliers: Array<{
+        pivot: {
+          supplier_reference: string;
+        };
+      }>;
+    };
+    quantity: number;
+  }>;
+}
+
+const props = defineProps<{
+  orders: Order[];
+}>();
+
+const breadcrumbs: BreadcrumbItemType[] = [
+  { title: 'Commandes', href: route('orders.index') },
+]
+
+const validateOrder = (order: Order) => {
+  router.post(route('orders.validate', order.id))
+}
+
+const cancelOrder = (order: Order) => {
+  router.post(route('orders.cancel', order.id))
+}
+
+const exportToExcel = async (order: Order) => {
+  try {
+    const response = await axios.get(route('orders.export', order.id), {
+      responseType: 'blob'
+    })
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `order_${order.order_number}.xlsx`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch (error) {
+    console.error('Error exporting to Excel:', error)
+    alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
+  }
+}
+
+const exportToCSV = async (order: Order) => {
+      try {
+        const csvContent = order.items
+          .map(item => {
+            const supplier = item.supply.suppliers.find(s => s.id === order.supplier.id)
+            return [
+              supplier?.pivot.supplier_reference || 'N/A',
+              item.quantity
+            ]
+          })
+          .map(row => row.join(';'))
+          .join('\n')
+
+        // Créer le blob et le lien de téléchargement
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `order_${order.order_number}_supplier_refs.csv`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+        
+      } catch (error) {
+        console.error('Error exporting to CSV:', error)
+        alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
+      }
+    }
+</script> 
+
 <template>
-  <AppLayout title="Commandes" :breadcrumbs="breadcrumbs">
+  <AppSidebarLayout title="Commandes" :breadcrumbs="breadcrumbs">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Liste des commandes
@@ -52,7 +148,7 @@
                       {{ order.supplier.name }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {{ order.order_date }}
+                      {{ new Date(order.order_date).toLocaleDateString('fr-FR') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span
@@ -136,79 +232,5 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </AppSidebarLayout>
 </template>
-
-<script setup lang="ts">
-import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import AppLayout from '@/Layouts/AppLayout.vue'
-import type { BreadcrumbItemType } from '@/types'
-import { Link, router } from '@inertiajs/vue3'
-import axios from 'axios'
-import { MoreVertical } from 'lucide-vue-next'
-
-const props = defineProps({
-  orders: Array,
-})
-
-const breadcrumbs: BreadcrumbItemType[] = [
-  { title: 'Commandes', href: route('orders.index') },
-]
-
-const validateOrder = (order) => {
-  router.post(route('orders.validate', order.id))
-}
-
-const cancelOrder = (order) => {
-  router.post(route('orders.cancel', order.id))
-}
-
-const exportToExcel = async (order) => {
-  try {
-    const response = await axios.get(route('orders.export', order.id), {
-      responseType: 'blob'
-    })
-    
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `order_${order.order_number}.xlsx`)
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-  } catch (error) {
-    console.error('Error exporting to Excel:', error)
-    alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
-  }
-}
-
-const exportToCSV = async (order) => {
-      
-      try {
-        // Créer le contenu CSV avec uniquement la référence fournisseur et la quantité
-        const csvContent = order.items
-          .map(item => [
-            item.supply.supplier_reference || '',
-            item.quantity
-          ])
-          .map(row => row.join(';'))
-          .join('\n')
-
-        // Créer le blob et le lien de téléchargement
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', `order_${order.order_number}_supplier_refs.csv`)
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
-        window.URL.revokeObjectURL(url)
-        
-      } catch (error) {
-        console.error('Error exporting to CSV:', error)
-        alert('Une erreur est survenue lors de l\'exportation. Veuillez réessayer.')
-      }
-    }
-</script> 

@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeliveryItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'delivery_id',
-        'supply_id',
-        'quantity',
-        'unit_price',
-        'notes'
+        'order_item_id',
+        'quantity'
     ];
 
     public function delivery(): BelongsTo
@@ -20,8 +21,8 @@ class DeliveryItem extends Model
         return $this->belongsTo(Delivery::class);
     }
 
-    public function supply(): BelongsTo
+    public function orderItem(): BelongsTo
     {
-        return $this->belongsTo(Supply::class);
+        return $this->belongsTo(OrderItem::class);
     }
 }

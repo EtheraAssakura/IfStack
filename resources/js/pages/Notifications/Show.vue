@@ -8,7 +8,7 @@ interface Notification {
     id: number;
     type: string;
     title: string;
-    message: string;
+    content: string;
     is_read: boolean;
     created_at: string;
     users: {
@@ -38,26 +38,24 @@ const props = defineProps<{
 }>();
 
 const isProcessed = ref(props.notification.type === 'alert' ? props.notification.stock?.processed : props.notification.is_read);
+const initialProcessedState = ref(props.notification.type === 'alert' ? props.notification.stock?.processed : props.notification.is_read);
 const showSuccessModal = ref(false);
 
 const handleProcessChange = () => {
     const currentValue = props.notification.type === 'alert' ? props.notification.stock?.processed : props.notification.is_read;
     const newValue = !currentValue;
     
-    console.log('Current value from notification:', currentValue);
-    console.log('New value to send:', newValue);
-    
     router.put(route('notifications.process', [props.notification.id, { type: props.notification.type }]), {
         processed: newValue
     }, {
         preserveScroll: true,
         onSuccess: () => {
-            isProcessed.value = newValue;
             if (props.notification.type === 'alert' && props.notification.stock) {
                 props.notification.stock.processed = newValue;
             } else {
                 props.notification.is_read = newValue;
             }
+            isProcessed.value = newValue;
             
             showSuccessModal.value = true;
             setTimeout(() => {
@@ -127,7 +125,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <div class="p-6">
                         <div class="mb-6">
                             <h3 class="text-2xl font-bold text-gray-900">{{ notification.title }}</h3>
-                            <p class="mt-2 text-gray-600">{{ notification.message }}</p>
+                            <p class="mt-2 text-gray-600">{{ notification.content }}</p>
                             <div class="mt-4 text-sm text-gray-500">
                                 {{ new Date(notification.created_at).toLocaleDateString() }} à {{ new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
                             </div>
@@ -192,7 +190,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </label>
                             </div>
                             <Link
-                                :href="route('notifications.index')"
+                                :href="initialProcessedState ? route('notifications.archive') : route('notifications.index')"
                                 class="text-sm text-gray-600 hover:text-gray-900"
                             >
                                 Retour à la liste
