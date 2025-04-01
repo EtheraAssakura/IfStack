@@ -42,8 +42,8 @@ class UserSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Admin Ethera',
-                'email' => 'etheraassakura@gmail.com',
+                'name' => 'Autre',
+                'email' => 'autre@gmail.com',
                 'password' => Hash::make('FK9y6=33d]Fqv:'),
                 'site_id' => DB::table('sites')->where('name', 'ISFAC Poitiers')->value('id'),
                 'created_at' => now(),
@@ -56,7 +56,7 @@ class UserSeeder extends Seeder
             $user = User::create($userData);
 
             // Associer les rôles aux utilisateurs
-            $role = $userData['email'] === 'celine.dupuis@isfac.fr' || $userData['email'] === 'etheraassakura@gmail.com'
+            $role = $userData['email'] === 'celine.dupuis@isfac.fr'
                 ? $adminRole
                 : $userRole;
 
