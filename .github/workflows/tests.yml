@@ -28,8 +28,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
+
+      - name: Clean Node Modules
+        run: |
+          rm -rf node_modules
+          rm -rf node_modules/.vite
+          rm -rf public/build
 
       - name: Install Node Dependencies
         run: npm ci
@@ -47,7 +53,10 @@ jobs:
         run: php artisan ziggy:generate
 
       - name: Build Assets
-        run: npm run build
+        run: |
+          echo "Starting build process..."
+          npm run build
+          echo "Build completed"
 
       - name: Tests
         run: ./vendor/bin/phpunit
