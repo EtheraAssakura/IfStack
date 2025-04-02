@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import Modal from '@/Components/Modal.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import SelectInput from '@/Components/SelectInput.vue';
-import TextInput from '@/Components/TextInput.vue';
+import InputError from '@/components/InputError.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import Modal from '@/components/Modal.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import SelectInput from '@/components/SelectInput.vue';
+import TextInput from '@/components/TextInput.vue';
 import { onMounted, ref } from 'vue';
 
 const props = defineProps<{

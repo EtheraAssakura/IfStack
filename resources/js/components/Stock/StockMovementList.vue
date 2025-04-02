@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TextInput from '@/Components/TextInput.vue';
+import TextInput from '@/components/TextInput.vue';
 import { formatDate } from '@/utils/date';
 import { Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
