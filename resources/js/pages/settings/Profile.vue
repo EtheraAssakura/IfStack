@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { TransitionRoot } from '@headlessui/vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -85,14 +84,14 @@ const submit = () => {
                     <div v-if="mustVerifyEmail && !user.email_verified_at">
                         <p class="-mt-4 text-sm text-muted-foreground">
                             Votre adresse e-mail n'est pas vérifiée.
-                            <Link
+                            <a
                                 :href="route('verification.send')"
                                 method="post"
                                 as="button"
                                 class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:!decoration-current dark:decoration-neutral-500"
                             >
                                 Cliquez ici pour renvoyer l'e-mail de vérification.
-                            </Link>
+                            </a>
                         </p>
 
                         <div v-if="status === 'verification-link-sent'" class="mt-2 text-sm font-medium text-green-600">

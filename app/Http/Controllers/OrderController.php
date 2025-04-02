@@ -66,6 +66,7 @@ class OrderController extends Controller
         return Inertia::render('Orders/Create', [
             'suppliers' => $suppliers,
             'supplies' => $supplies,
+            'errors' => session()->get('errors') ? session()->get('errors')->getBag('default')->getMessages() : (object) [],
         ]);
     }
 

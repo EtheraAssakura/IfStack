@@ -9,7 +9,6 @@ interface Notification {
     title: string;
     content: string;
     comment: string;
-    is_read: boolean;
     created_at: string;
     users: {
         id: number;

@@ -118,6 +118,9 @@ interface PageProps {
     success?: string
     error?: string
   }
+  auth: {
+    user: any
+  }
   [key: string]: unknown
 }
 

@@ -62,8 +62,8 @@ const handleProcessChange = () => {
                 showSuccessModal.value = false;
             }, 1000);
         },
-        onError: (errors) => {
-            console.error('Error updating notification:', errors);
+        onError: () => {
+            // Gestion silencieuse de l'erreur
         }
     });
 };
@@ -201,16 +201,4 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
         </div>
     </AppSidebarLayout>
-</template>
-
-<style scoped>
-.fixed {
-    position: fixed;
-}
-.inset-0 {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-</style> 
+</template> 

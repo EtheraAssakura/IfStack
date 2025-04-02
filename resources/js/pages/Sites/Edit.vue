@@ -94,9 +94,6 @@ const removeImage = () => {
             onSuccess: () => {
                 form.plan = null;
                 preview.value = null;
-            },
-            onError: (errors) => {
-                console.error('Erreur lors de la suppression du plan:', errors);
             }
         });
     }

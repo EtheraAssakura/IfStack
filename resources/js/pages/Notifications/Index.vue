@@ -2,7 +2,7 @@
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { computed, defineProps, ref } from 'vue';
+import { defineProps } from 'vue';
 
 interface Notification {
     id: number;
@@ -27,72 +27,12 @@ const props = defineProps<{
     latestRequests: Notification[];
 }>();
 
-// Ajout de la computed property pour trier les demandes
-const sortedRequests = computed(() => {
-    if (!props.latestRequests) return [];
-    
-    return [...props.latestRequests].sort((a, b) => {
-        // D'abord trier par statut de lecture (non lus en premier)
-        if (a.is_read !== b.is_read) {
-            return a.is_read ? 1 : -1;
-        }
-        // Ensuite trier par date (plus ancien en premier)
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    });
-});
-
-// Ajout des logs de débogage
-console.log('Props reçues:', props);
-console.log('Alertes:', props.latestAlerts);
-console.log('Nombre d\'alertes:', props.latestAlerts?.length || 0);
-console.log('Demandes:', props.latestRequests);
-console.log('Nombre de demandes:', props.latestRequests?.length || 0);
-
-try {
-    if (props.latestAlerts) {
-        props.latestAlerts.forEach((alert, index) => {
-            console.log(`Alerte ${index + 1}:`, {
-                id: alert.id,
-                type: alert.type,
-                title: alert.title,
-                content: alert.content,
-                is_read: alert.is_read,
-                created_at: alert.created_at
-            });
-        });
-    }
-} catch (error) {
-    console.error('Erreur lors du traitement des alertes:', error);
-}
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Notifications',
         href: route('notifications.index'),
     },
 ];
-
-// Ajout des refs pour gérer l'affichage des notifications traitées
-const showProcessedAlerts = ref(false);
-const showProcessedRequests = ref(false);
-
-// Computed properties pour les notifications traitées
-const processedAlerts = computed(() => {
-    if (!props.latestAlerts) return [];
-    return props.latestAlerts
-        .filter(alert => alert.is_read)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 5);
-});
-
-const processedRequests = computed(() => {
-    if (!props.latestRequests) return [];
-    return props.latestRequests
-        .filter(request => request.is_read)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 5);
-});
-
 </script>
 
 <template>

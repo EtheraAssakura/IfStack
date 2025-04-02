@@ -3,7 +3,6 @@ import InputError from '@/components/InputError.vue';
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
-import { TransitionRoot } from '@headlessui/vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 

@@ -150,7 +150,7 @@ const form = useForm({
   _method: 'PUT'
 });
 
-const { isOverDropZone } = useDropZone(dropZone, {
+useDropZone(dropZone, {
   onDrop: (files: File[] | null) => {
     if (!files) return;
     const file = files[0];

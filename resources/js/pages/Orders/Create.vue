@@ -39,8 +39,8 @@
                       {{ supplier.name }}
                     </option>
                   </select>
-                  <div v-if="errors.supplier_id" class="text-red-500 text-sm mt-1">
-                    {{ errors.supplier_id }}
+                  <div v-if="form.errors.supplier_id" class="text-red-500 text-sm mt-1">
+                    {{ form.errors.supplier_id }}
                   </div>
                 </div>
 
@@ -54,8 +54,8 @@
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     required
                   />
-                  <div v-if="errors.order_date" class="text-red-500 text-sm mt-1">
-                    {{ errors.order_date }}
+                  <div v-if="form.errors.order_date" class="text-red-500 text-sm mt-1">
+                    {{ form.errors.order_date }}
                   </div>
                 </div>
 
@@ -68,8 +68,8 @@
                     v-model="form.expected_delivery_date"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
-                  <div v-if="errors.expected_delivery_date" class="text-red-500 text-sm mt-1">
-                    {{ errors.expected_delivery_date }}
+                  <div v-if="form.errors.expected_delivery_date" class="text-red-500 text-sm mt-1">
+                    {{ form.errors.expected_delivery_date }}
                   </div>
                 </div>
               </div>
@@ -96,6 +96,18 @@
                 </div>
                 <div v-if="form.items.length === 0" class="text-center py-4 text-gray-500">
                   Aucun article ajouté. Cliquez sur "Ajouter un Article" pour commencer.
+                </div>
+                <div v-if="form.errors.items" class="text-red-500 text-sm mt-1 mb-4">
+                  {{ form.errors.items }}
+                </div>
+                <div v-if="form.errors['items.0.supply_id']" class="text-red-500 text-sm mt-1 mb-4">
+                  {{ form.errors['items.0.supply_id'] }}
+                </div>
+                <div v-if="form.errors['items.0.quantity']" class="text-red-500 text-sm mt-1 mb-4">
+                  {{ form.errors['items.0.quantity'] }}
+                </div>
+                <div v-if="form.errors['items.0.unit_price']" class="text-red-500 text-sm mt-1 mb-4">
+                  {{ form.errors['items.0.unit_price'] }}
                 </div>
 
                 <draggable
@@ -220,6 +232,7 @@
 <script setup lang="ts">
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue'
 import type { BreadcrumbItemType } from '@/types'
+import type { FormDataConvertible } from '@inertiajs/core'
 import { Link, useForm } from '@inertiajs/vue3'
 import { Pen, Trash2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -255,6 +268,14 @@ interface OrderItem {
   unit_price: number
 }
 
+interface OrderForm {
+  [key: string]: FormDataConvertible | FormDataConvertible[];
+  supplier_id: string | number;
+  order_date: string;
+  expected_delivery_date: string;
+  items: OrderItem[];
+}
+
 const breadcrumbs: BreadcrumbItemType[] = [
   {
     title: 'Commandes',
@@ -266,11 +287,11 @@ const breadcrumbs: BreadcrumbItemType[] = [
   },
 ]
 
-const form = useForm<Record<string, any>>({
+const form = useForm({
   supplier_id: '',
-  order_date: '',
+  order_date: new Date().toISOString().split('T')[0],
   expected_delivery_date: '',
-  items: [] as OrderItem[],
+  items: [],
 })
 
 const showAddItemModal = ref(false)
@@ -371,7 +392,31 @@ const removeItem = (index: number) => {
 }
 
 const submit = () => {
-  form.post(route('orders.store'))
+  if (form.items.length === 0) {
+    alert('Veuillez ajouter au moins un article à la commande')
+    return
+  }
+
+  // Convertir les valeurs numériques en chaînes pour le formulaire
+  const formattedItems = form.items.map(item => ({
+    supply_id: String(item.supply_id),
+    quantity: String(item.quantity),
+    unit_price: String(item.unit_price)
+  }))
+
+  const formData = {
+    supplier_id: form.supplier_id,
+    order_date: form.order_date,
+    expected_delivery_date: form.expected_delivery_date,
+    items: formattedItems
+  }
+
+  form.post(route('orders.store'), {
+    onError: (errors) => {
+      console.error('Erreurs de validation:', errors)
+    },
+    data: formData
+  })
 }
 
 const updateUnitPrice = () => {

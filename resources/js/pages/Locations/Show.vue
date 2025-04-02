@@ -2,7 +2,6 @@
 import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { MapPin } from 'lucide-vue-next';
 
 const props = defineProps<{
   location: {
