@@ -26,7 +26,7 @@ IfStack est une application web moderne construite avec Laravel et Vue.js, offra
 
 1. Cloner le repository
 ```bash
-git clone [URL_DU_REPO]
+git clone https://github.com/EtheraAssakura/IfStack
 cd IfStack
 ```
 
